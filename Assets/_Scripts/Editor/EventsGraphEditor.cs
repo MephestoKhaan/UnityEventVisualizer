@@ -5,10 +5,10 @@ using System.Collections.Generic;
 
 public class EventsGraphEditor : EditorWindow
 {
-    Dictionary<Component, Rect> windows = new Dictionary<Component, Rect>();
-    
-    [MenuItem("Window/Events Graph editor")]
 
+    private Dictionary<Component, Rect> windows = new Dictionary<Component, Rect>();
+
+    [MenuItem("Window/Events Graph editor")]
     static void ShowEditor()
     {
         EventsGraphEditor editor = EditorWindow.GetWindow<EventsGraphEditor>();
@@ -25,7 +25,7 @@ public class EventsGraphEditor : EditorWindow
         List<EventCall> eventCalls = EventsFinder.FindAllEvents();
 
         BeginWindows();
-        foreach(var call in eventCalls)
+        foreach (var call in eventCalls)
         {
             DrawEventCall(call);
         }
@@ -44,11 +44,11 @@ public class EventsGraphEditor : EditorWindow
         DrawNodeCurve(windows[call.Sender], windows[call.Receiver]);
     }
 
-    void StoreWindow(Component comp) 
+    void StoreWindow(Component comp)
     {
-        if(!windows.ContainsKey(comp))
+        if (!windows.ContainsKey(comp))
         {
-            windows.Add(comp, new Rect(Random.Range(0,600), Random.Range(0, 600), 100,100)); 
+            windows.Add(comp, new Rect(Random.Range(0, 600), Random.Range(0, 600), 100, 100));
         }
     }
 
@@ -64,9 +64,18 @@ public class EventsGraphEditor : EditorWindow
         Vector3 endPos = new Vector3(end.x, end.y + end.height / 2, 0);
         Vector3 startTan = startPos + Vector3.right * 50;
         Vector3 endTan = endPos + Vector3.left * 50;
-        Color shadowCol = new Color(0, 0, 0, 0.06f);
-        for (int i = 0; i < 3; i++) // Draw a shadow
-            Handles.DrawBezier(startPos, endPos, startTan, endTan, shadowCol, null, (i + 1) * 5);
-        Handles.DrawBezier(startPos, endPos, startTan, endTan, Color.black, null, 1);
+
+        Handles.DrawBezier(startPos, endPos, startTan, endTan, Color.black, null, 3);
+
+
+        float arrowSize = 6f;
+        Handles.color = Color.black;
+        Handles.DrawAAConvexPolygon(new Vector3[]
+        {
+            endPos + new Vector3(-1,-1,0) * arrowSize,
+            endPos,
+            endPos +  new Vector3(-1,1,0) * arrowSize });
+        
+
     }
 }
