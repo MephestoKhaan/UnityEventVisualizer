@@ -1,47 +1,40 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-public class EventsFinder : MonoBehaviour
+namespace EventVisualizer.Base
 {
 
-    void Start()
+    public class EventsFinder : MonoBehaviour
     {
-
-        Component[] allComponents = ScriptableObject.FindObjectsOfType<Component>();
-
-        foreach (Component component in allComponents)
+        public static List<EventCall> FindAllEvents()
         {
-            SerializedObject serializedObject = new UnityEditor.SerializedObject(component);
-            SerializedProperty iterator = serializedObject.GetIterator();
-            iterator.Next(true);
+            List<EventCall> calls = new List<EventCall>();
 
-            while (iterator.Next(false))
+            foreach (Component component in ScriptableObject.FindObjectsOfType<Component>())
             {
-                if (iterator.type != null
-                    && iterator.type != string.Empty)
+                SerializedObject serializedObject = new UnityEditor.SerializedObject(component);
+                SerializedProperty iterator = serializedObject.GetIterator();
+                iterator.Next(true);
+
+                while (iterator.Next(false))
                 {
                     SerializedProperty persistentCalls = iterator.FindPropertyRelative("m_PersistentCalls.m_Calls");
                     if (persistentCalls != null)
                     {
-
                         for (int i = 0; i < persistentCalls.arraySize; ++i)
                         {
                             SerializedProperty methodName = persistentCalls.GetArrayElementAtIndex(i).FindPropertyRelative("m_MethodName");
                             SerializedProperty target = persistentCalls.GetArrayElementAtIndex(i).FindPropertyRelative("m_Target");
-
-                            Debug.Log("InstanceID: " + target.objectReferenceInstanceIDValue + " calls: " + methodName.stringValue);
-                            //callState.intValue = (int)UnityEngine.Events.UnityEventCallState.RuntimeOnly;
+                            Component receiver = EditorUtility.InstanceIDToObject(target.objectReferenceInstanceIDValue) as Component;
+                            calls.Add(new EventCall(component,
+                                receiver,
+                                methodName.stringValue));
                         }
                     }
-
                 }
             }
-
+            return calls;
         }
     }
-
-
 }
