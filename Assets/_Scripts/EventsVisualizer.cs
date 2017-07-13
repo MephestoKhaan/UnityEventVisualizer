@@ -11,9 +11,9 @@ namespace EventVisualizer.Base
         {
             List<EventCall> calls = new List<EventCall>();
 
-            foreach (Component component in ScriptableObject.FindObjectsOfType<Component>())
+            foreach (Component caller in ScriptableObject.FindObjectsOfType<Component>())
             {
-                SerializedObject serializedObject = new UnityEditor.SerializedObject(component);
+                SerializedObject serializedObject = new UnityEditor.SerializedObject(caller);
                 SerializedProperty iterator = serializedObject.GetIterator();
                 iterator.Next(true);
 
@@ -27,8 +27,10 @@ namespace EventVisualizer.Base
                             SerializedProperty methodName = persistentCalls.GetArrayElementAtIndex(i).FindPropertyRelative("m_MethodName");
                             SerializedProperty target = persistentCalls.GetArrayElementAtIndex(i).FindPropertyRelative("m_Target");
                             Component receiver = EditorUtility.InstanceIDToObject(target.objectReferenceInstanceIDValue) as Component;
-                            calls.Add(new EventCall(component,
+
+                            calls.Add(new EventCall(caller,
                                 receiver,
+                                iterator.displayName,
                                 methodName.stringValue));
                         }
                     }
