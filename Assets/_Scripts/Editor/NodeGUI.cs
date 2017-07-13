@@ -5,10 +5,11 @@ using System;
 using System.Reflection;
 using Graphs = UnityEditor.Graphs;
 using System.Linq;
+using UnityEditor.Graphs;
+using System.Collections.Generic;
 
 namespace EventVisualizer.Base
 {
-    // Spacialized node class
     public class NodeGUI : Graphs.Node
     {
         #region Public class methods
@@ -44,15 +45,9 @@ namespace EventVisualizer.Base
         // Node display title
         public override string title
         {
-            get { return isValid? _runtimeInstance.Name : "<Missing>"; }
+            get { return isValid ? _runtimeInstance.Name : "<Missing>"; }
         }
 
-        // Removal from a graph
-        public override void RemovingFromGraph()
-        {
-          /*  if (graph != null && ((EventsGraph)graph).isEditing)
-                Undo.DestroyObjectImmediate(_runtimeInstance.gameObject);*/
-        }
 
         // Dirty callback
         public override void Dirty()
@@ -60,7 +55,7 @@ namespace EventVisualizer.Base
             base.Dirty();
 
             // Update serialized position info if it's changed.
-            if(isValid)
+            if (isValid)
             {
                 _serializedObject.Update();
             }
@@ -79,6 +74,7 @@ namespace EventVisualizer.Base
 
 
 
+
         // Initializer (called from the Create method)
         void Initialize(NodeData runtimeInstance)
         {
@@ -88,7 +84,7 @@ namespace EventVisualizer.Base
             _runtimeInstance = runtimeInstance;
             _serializedObject = new UnityEditor.SerializedObject(runtimeInstance.Entity);
             _serializedPosition = _serializedObject.FindProperty("_wiringNodePosition");
-            position = new Rect(Vector2.one * UnityEngine.Random.Range(0,500), Vector2.zero);
+            position = new Rect(Vector2.one * UnityEngine.Random.Range(0, 500), Vector2.zero);
 
             PopulateSlots();
         }
@@ -98,24 +94,78 @@ namespace EventVisualizer.Base
             foreach (EventCall call in _runtimeInstance.Inputs)
             {
                 string title = ObjectNames.NicifyVariableName(call.EventName);
-                if(!outputSlots.Any(s => s.title == title))
+                if (!outputSlots.Any(s => s.title == title))
                 {
                     var slot = AddOutputSlot(call.EventName);
                     slot.title = title;
                 }
-                
             }
+
             foreach (EventCall call in _runtimeInstance.Outputs)
             {
                 string title = ObjectNames.NicifyVariableName(call.Method);
                 if (!inputSlots.Any(s => s.title == title))
                 {
-                    var slot = AddInputSlot("set_" + call.Method);
+                    var slot = AddInputSlot(call.Method);
                     slot.title = title;
                 }
             }
-            
         }
+
+        public void PopulateEdges() //TODO certainly this could be cleaner
+        {
+            foreach(var outSlot in outputSlots)
+            {
+
+
+
+            }
+
+
+            foreach (EventCall call in _runtimeInstance.Outputs)
+            {
+                Slot inSlot = null;
+                Slot outSlot = null;
+                
+                outSlot = FindSlotByName(outputSlots,call.EventName);
+                if (outputSlots != null)
+                {
+                    NodeGUI receiverNode = graph.nodes.Find(n =>
+                    {
+                        NodeGUI node = n as NodeGUI;
+                        if (node != null)
+                        {
+                            return node.runtimeInstance.Entity == call.Receiver;
+                        }
+                        return false;
+                    }) as NodeGUI;
+
+                    //if(receiverNode != null)
+                    {
+                        inSlot = FindSlotByName(receiverNode.inputSlots, call.Method);
+                    }
+                    
+                    if (outSlot != null && inSlot != null)
+                    {
+                        graph.Connect(outSlot, inSlot);
+                    }
+                }
+            }
+        }
+
+        //helping method because for some reason LinQ does not want to work
+        static Slot FindSlotByName(IEnumerable<Slot> slotCollection, string name)
+        {
+            foreach(var slot in slotCollection)
+            {
+                if(slot.name == name)
+                {
+                    return slot;
+                }
+            }
+            return null;
+        }
+
 
         #endregion
     }

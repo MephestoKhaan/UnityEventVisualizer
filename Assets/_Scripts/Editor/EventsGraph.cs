@@ -38,7 +38,11 @@ namespace EventVisualizer.Base
                 AddNode(NodeGUI.Create(node));
             }
 
-            
+            foreach (NodeGUI node in nodes)
+            {
+                node.PopulateEdges();
+            }
+
         }
         
     }
