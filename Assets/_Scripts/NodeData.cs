@@ -5,7 +5,7 @@ namespace EventVisualizer.Base
 {
     public class NodeData
     {
-        public Component Entity { get; private set; }
+        public Object Entity { get; private set; }
 
         public string Name
         {
@@ -19,7 +19,7 @@ namespace EventVisualizer.Base
         public List<EventCall> Outputs { get; private set; }
         public List<EventCall> Inputs { get; private set; }
 
-        private static Dictionary<Component, NodeData> nodes = new Dictionary<Component, NodeData>();
+        private static Dictionary<Object, NodeData> nodes = new Dictionary<Object, NodeData>();
 
         public static ICollection<NodeData> Nodes
         {
@@ -43,7 +43,7 @@ namespace EventVisualizer.Base
             nodes[eventCall.Receiver].Inputs.Add(eventCall);
         }
 
-        private static void CreateNode(Component entity)
+        private static void CreateNode(Object entity)
         {
             if(!nodes.ContainsKey(entity))
             {
@@ -51,7 +51,7 @@ namespace EventVisualizer.Base
             }
         }
         
-        public NodeData(Component entity)
+        public NodeData(Object entity)
         {
             Entity = entity;
             Outputs = new List<EventCall>();

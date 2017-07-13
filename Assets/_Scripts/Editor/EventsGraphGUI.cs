@@ -8,6 +8,8 @@ namespace EventVisualizer.Base
 {
     public class EventsGraphGUI : GraphGUI
     {
+        private bool ignoreNextSelection = false;
+
         public override void OnGraphGUI()
         {
             // Show node subwindows.
@@ -45,8 +47,42 @@ namespace EventVisualizer.Base
 
             // Mouse drag
             DragSelection(new Rect(-5000, -5000, 10000, 10000));
+
+            HandleRemoteSelection();
         }
-        
-        
+
+        public override void NodeGUI(Node node)
+        {
+            base.NodeGUI(node);
+            UpdateSelection();
+        }
+
+        private void UpdateSelection()
+        {
+            if (selection.Count > 0)
+            {
+                int[] selectedIds = new int[selection.Count];
+                for (int i = 0; i < selection.Count; i++)
+                {
+                    selectedIds[i] = int.Parse(selection[i].name);
+                }
+                ignoreNextSelection = true;
+                Selection.instanceIDs = selectedIds;
+            }
+        }
+
+        private void HandleRemoteSelection()
+        {
+            selection.Clear();
+
+            foreach(int id in Selection.instanceIDs)
+            {
+                Node node = graph[id.ToString()];
+                if(node != null)
+                {
+                    selection.Add(node);
+                }
+            }
+        }
     }
 }

@@ -25,7 +25,7 @@ namespace EventVisualizer.Base
             _graphGUI = _graph.GetEditor();
 
 
-            _graph.UpdateGraph();
+            _graph.BuildGraph();
         }
 
         void OnGUI()

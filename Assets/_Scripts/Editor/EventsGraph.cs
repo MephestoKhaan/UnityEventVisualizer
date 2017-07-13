@@ -23,10 +23,10 @@ namespace EventVisualizer.Base
             
         }
 
-        public void UpdateGraph()
+        public void BuildGraph()
         {
-            NodeData.Clear(); //TODO not nice
-            Clear(true);//TODO not nice
+            NodeData.Clear(); 
+            Clear(true);
 
             foreach (var call in EventsFinder.FindAllEvents())
             {

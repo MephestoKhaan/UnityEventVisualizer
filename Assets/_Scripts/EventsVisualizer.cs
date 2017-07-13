@@ -4,8 +4,7 @@ using UnityEngine;
 
 namespace EventVisualizer.Base
 {
-
-    public class EventsFinder : MonoBehaviour
+    public static class EventsFinder
     {
         public static List<EventCall> FindAllEvents()
         {
