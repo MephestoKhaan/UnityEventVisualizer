@@ -1,11 +1,8 @@
 ﻿using UnityEngine;
-using UnityEngine.Events;
 using UnityEditor;
 using System;
-using System.Reflection;
 using Graphs = UnityEditor.Graphs;
 using System.Linq;
-using UnityEditor.Graphs;
 using System.Collections.Generic;
 
 namespace EventVisualizer.Base
@@ -70,7 +67,6 @@ namespace EventVisualizer.Base
 
         // Serialized property accessor
         SerializedObject _serializedObject;
-        SerializedProperty _serializedPosition;
         
 
         // Initializer (called from the Create method)
@@ -81,7 +77,6 @@ namespace EventVisualizer.Base
             // Object references
             _runtimeInstance = runtimeInstance;
             _serializedObject = new UnityEditor.SerializedObject(runtimeInstance.Entity);
-            _serializedPosition = _serializedObject.FindProperty("_wiringNodePosition");
             position = new Rect(Vector2.one * UnityEngine.Random.Range(0, 500), Vector2.zero);
 
             PopulateSlots();

@@ -53,7 +53,23 @@ namespace EventVisualizer.Base
 
         public override void NodeGUI(Node node)
         {
-            base.NodeGUI(node);
+            SelectNode(node);
+
+            foreach (var slot in node.inputSlots)
+                LayoutSlot(slot, slot.title, false, true, true, Styles.triggerPinIn);
+
+            node.NodeUI(this);
+
+            foreach (var slot in node.outputSlots)
+            {
+                EditorGUILayout.BeginHorizontal();
+                GUILayout.FlexibleSpace();
+                LayoutSlot(slot, slot.title, true, false, true, Styles.triggerPinOut);
+                EditorGUILayout.EndHorizontal();
+            }
+
+            DragNodes();
+
             UpdateSelection();
         }
 

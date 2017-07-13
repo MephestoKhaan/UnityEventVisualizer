@@ -28,6 +28,7 @@ namespace EventVisualizer.Base
                 return nodes != null ? nodes.Values : null;
             }
         }
+        
 
         public static void Clear() 
         {

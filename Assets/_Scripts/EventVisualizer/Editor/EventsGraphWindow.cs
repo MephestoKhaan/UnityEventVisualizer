@@ -40,6 +40,8 @@ namespace EventVisualizer.Base
             _graphGUI.OnGraphGUI();
             _graphGUI.EndGraphGUI();
 
+            _graphGUI.CenterGraph();
+
             // Clear selection on background click
             var e = Event.current;
             if (e.type == EventType.MouseDown && e.clickCount == 1)
