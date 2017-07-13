@@ -19,6 +19,7 @@ namespace EventVisualizer.Base
         {
             var node = CreateInstance<NodeGUI>();
             node.Initialize(runtimeInstance);
+            node.name = runtimeInstance.Entity.GetInstanceID().ToString();
             return node;
         }
 
@@ -48,7 +49,6 @@ namespace EventVisualizer.Base
             get { return isValid ? _runtimeInstance.Name : "<Missing>"; }
         }
 
-
         // Dirty callback
         public override void Dirty()
         {
@@ -71,9 +71,7 @@ namespace EventVisualizer.Base
         // Serialized property accessor
         SerializedObject _serializedObject;
         SerializedProperty _serializedPosition;
-
-
-
+        
 
         // Initializer (called from the Create method)
         void Initialize(NodeData runtimeInstance)
@@ -91,7 +89,7 @@ namespace EventVisualizer.Base
 
         void PopulateSlots()
         {
-            foreach (EventCall call in _runtimeInstance.Inputs)
+            foreach (EventCall call in _runtimeInstance.Outputs)
             {
                 string title = ObjectNames.NicifyVariableName(call.EventName);
                 if (!outputSlots.Any(s => s.title == title))
@@ -101,7 +99,7 @@ namespace EventVisualizer.Base
                 }
             }
 
-            foreach (EventCall call in _runtimeInstance.Outputs)
+            foreach (EventCall call in _runtimeInstance.Inputs)
             {
                 string title = ObjectNames.NicifyVariableName(call.Method);
                 if (!inputSlots.Any(s => s.title == title))
@@ -112,61 +110,22 @@ namespace EventVisualizer.Base
             }
         }
 
-        public void PopulateEdges() //TODO certainly this could be cleaner
+        public void PopulateEdges() 
         {
             foreach(var outSlot in outputSlots)
             {
+                List<EventCall> outCalls = _runtimeInstance.Outputs.FindAll(call => call.EventName == outSlot.name);
 
-
-
-            }
-
-
-            foreach (EventCall call in _runtimeInstance.Outputs)
-            {
-                Slot inSlot = null;
-                Slot outSlot = null;
-                
-                outSlot = FindSlotByName(outputSlots,call.EventName);
-                if (outputSlots != null)
+                foreach(var call in outCalls)
                 {
-                    NodeGUI receiverNode = graph.nodes.Find(n =>
-                    {
-                        NodeGUI node = n as NodeGUI;
-                        if (node != null)
-                        {
-                            return node.runtimeInstance.Entity == call.Receiver;
-                        }
-                        return false;
-                    }) as NodeGUI;
+                    var targetNode = graph[call.Receiver.GetInstanceID().ToString()];
+                    var inSlot = targetNode[call.Method];
 
-                    //if(receiverNode != null)
-                    {
-                        inSlot = FindSlotByName(receiverNode.inputSlots, call.Method);
-                    }
-                    
-                    if (outSlot != null && inSlot != null)
-                    {
-                        graph.Connect(outSlot, inSlot);
-                    }
+                    graph.Connect(outSlot, inSlot);
                 }
             }
         }
-
-        //helping method because for some reason LinQ does not want to work
-        static Slot FindSlotByName(IEnumerable<Slot> slotCollection, string name)
-        {
-            foreach(var slot in slotCollection)
-            {
-                if(slot.name == name)
-                {
-                    return slot;
-                }
-            }
-            return null;
-        }
-
-
+        
         #endregion
     }
 }
