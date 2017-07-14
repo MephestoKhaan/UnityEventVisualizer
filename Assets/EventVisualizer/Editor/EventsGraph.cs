@@ -55,9 +55,14 @@ namespace EventVisualizer.Base
         private void SortGraph()
         {
             positionedNodes.Clear();
-
+            
             List<Node> sortedNodes = new List<Node>(nodes); //cannot sort the original collection so a clone is needed
-            sortedNodes.Sort((x, y) => y.outputEdges.Count().CompareTo(x.outputEdges.Count()));
+            sortedNodes.Sort((x, y) =>
+            {
+                int xScore = x.outputEdges.Count() - x.inputEdges.Count();
+                int yScore = y.outputEdges.Count() - y.inputEdges.Count();
+                return yScore.CompareTo(xScore);
+            });
 
             Vector2 position = Vector2.zero;
             foreach (Node node in sortedNodes)
