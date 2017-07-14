@@ -19,6 +19,7 @@ namespace EventVisualizer.Base
         public List<EventCall> Outputs { get; private set; }
         public List<EventCall> Inputs { get; private set; }
 
+        
         private static Dictionary<Object, NodeData> nodes = new Dictionary<Object, NodeData>();
 
         public static ICollection<NodeData> Nodes

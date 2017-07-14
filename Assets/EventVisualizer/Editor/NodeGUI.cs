@@ -1,8 +1,11 @@
 ﻿using UnityEngine;
+using UnityEngine.Events;
 using UnityEditor;
 using System;
+using System.Reflection;
 using Graphs = UnityEditor.Graphs;
 using System.Linq;
+using UnityEditor.Graphs;
 using System.Collections.Generic;
 
 namespace EventVisualizer.Base
@@ -12,11 +15,11 @@ namespace EventVisualizer.Base
         #region Public class methods
 
         // Factory method
-        static public NodeGUI Create(NodeData runtimeInstance)
+        static public NodeGUI Create(NodeData dataInstance)
         {
             var node = CreateInstance<NodeGUI>();
-            node.Initialize(runtimeInstance);
-            node.name = runtimeInstance.Entity.GetInstanceID().ToString();
+            node.Initialize(dataInstance);
+            node.name = dataInstance.Entity.GetInstanceID().ToString();
             return node;
         }
 
@@ -96,7 +99,7 @@ namespace EventVisualizer.Base
 
             foreach (EventCall call in _runtimeInstance.Inputs)
             {
-                string title = ObjectNames.NicifyVariableName(call.Method);
+                string title = ObjectNames.NicifyVariableName(call.ReceiverComponentName +  call.Method);
                 if (!inputSlots.Any(s => s.title == title))
                 {
                     var slot = AddInputSlot(call.Method);
@@ -116,7 +119,10 @@ namespace EventVisualizer.Base
                     var targetNode = graph[call.Receiver.GetInstanceID().ToString()];
                     var inSlot = targetNode[call.Method];
 
-                    graph.Connect(outSlot, inSlot);
+                    if(!graph.Connected(outSlot, inSlot))
+                    {
+                        graph.Connect(outSlot, inSlot);
+                    }
                 }
             }
         }

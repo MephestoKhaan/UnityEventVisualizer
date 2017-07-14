@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Graphs;
@@ -16,20 +17,27 @@ namespace EventVisualizer.Base
         {
             EventsGraphWindow editor = EditorWindow.GetWindow<EventsGraphWindow>();
             editor.Initialize();
+
         }
 
-        void Initialize()
+        public void Initialize()
         {
             hideFlags = HideFlags.HideAndDontSave;
             _graph = EventsGraph.Create();
             _graphGUI = _graph.GetEditor();
-
-
+            
             _graph.BuildGraph();
+
+            _graphGUI.CenterGraph();
         }
 
         void OnGUI()
         {
+            if(_graph == null)
+            {
+                Initialize();
+                return;
+            }
             const float kBarHeight = 17;
             var width = position.width;
             var height = position.height;
@@ -40,7 +48,6 @@ namespace EventVisualizer.Base
             _graphGUI.OnGraphGUI();
             _graphGUI.EndGraphGUI();
 
-            _graphGUI.CenterGraph();
 
             // Clear selection on background click
             var e = Event.current;
@@ -49,9 +56,24 @@ namespace EventVisualizer.Base
 
             // Status bar
             GUILayout.BeginArea(new Rect(0, height - kBarHeight, width, kBarHeight));
-            GUILayout.Label(_graph.name);
+            if(GUILayout.Button("Refresh"))
+            {
+                Refresh();
+            }
             GUILayout.EndArea();
         }
+
+        public void OverrideSelection(int overrideIndex)
+        {
+            _graphGUI.SelectionOverride = overrideIndex;
+            EditorUtility.SetDirty(this);
+        }
         
+
+        void Refresh()
+        {
+            _graph.Clear();
+            _graph.BuildGraph();
+        }
     }
 }

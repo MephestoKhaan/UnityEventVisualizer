@@ -8,8 +8,8 @@ namespace EventVisualizer.Base
 {
     public class EventsGraphGUI : GraphGUI
     {
-        private bool ignoreNextSelection = false;
-
+        public int SelectionOverride { get; set; } //TODO not nice
+        
         public override void OnGraphGUI()
         {
             // Show node subwindows.
@@ -43,13 +43,22 @@ namespace EventVisualizer.Base
 
             // Graph edges
             edgeGUI.DoEdges();
-            edgeGUI.DoDraggedEdge();
 
             // Mouse drag
             DragSelection(new Rect(-5000, -5000, 10000, 10000));
-
-            HandleRemoteSelection();
+            
         }
+
+        public override IEdgeGUI edgeGUI
+        {
+            get
+            {
+                if (m_EdgeGUI == null)
+                    m_EdgeGUI = new EdgeGUI { host = this };
+                return m_EdgeGUI;
+            }
+        }
+        
 
         public override void NodeGUI(Node node)
         {
@@ -75,6 +84,7 @@ namespace EventVisualizer.Base
 
         private void UpdateSelection()
         {
+            OverrideSelection();
             if (selection.Count > 0)
             {
                 int[] selectedIds = new int[selection.Count];
@@ -82,23 +92,28 @@ namespace EventVisualizer.Base
                 {
                     selectedIds[i] = int.Parse(selection[i].name);
                 }
-                ignoreNextSelection = true;
                 Selection.instanceIDs = selectedIds;
             }
         }
 
-        private void HandleRemoteSelection()
+        private void OverrideSelection()
         {
-            selection.Clear();
-
-            foreach(int id in Selection.instanceIDs)
+            if (SelectionOverride != 0)
             {
-                Node node = graph[id.ToString()];
-                if(node != null)
+                Node selectedNode = graph[SelectionOverride.ToString()];
+                if (selectedNode != null)
                 {
-                    selection.Add(node);
+                    selection.Clear();
+                    selection.Add(selectedNode);
+                    CenterGraph(selectedNode.position.position);
+                    
                 }
+                SelectionOverride = 0;
             }
         }
+             
+        
+        
+
     }
 }
