@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEditor;
 using EventVisualizer.Base;
 using System.Collections.Generic;
 using UnityEditor.Graphs;
@@ -28,12 +27,10 @@ namespace EventVisualizer.Base
         {
             NodeData.Clear();
             Clear(true);
-
             foreach (var call in EventsFinder.FindAllEvents())
             {
                 NodeData.RegisterEvent(call);
             }
-
             foreach (NodeData data in NodeData.Nodes)
             {
                 AddNode(NodeGUI.Create(data));

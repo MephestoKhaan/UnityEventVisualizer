@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEditor;
-using UnityEditor.Graphs;
+﻿using UnityEditor;
 using UnityEngine;
 
 namespace EventVisualizer.Base
 {
+
     public class EventsGraphWindow : EditorWindow
     {
         private EventsGraph _graph;
