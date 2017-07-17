@@ -1,16 +1,16 @@
 ﻿using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
-
+using UnityEditor;
 namespace EventVisualizer.Base
 {
+
     public static class EventsFinder
     {
         public static List<EventCall> FindAllEvents()
         {
             List<EventCall> calls = new List<EventCall>();
-            
-            foreach(GameObject go in GetAllObjectsInScene())
+
+            foreach (GameObject go in GetAllObjectsInScene())
             {
                 foreach (Component caller in go.GetComponents<Component>())
                 {
@@ -58,7 +58,7 @@ namespace EventVisualizer.Base
                     continue;
                 }
 
-                if (pObject.hideFlags == HideFlags.NotEditable 
+                if (pObject.hideFlags == HideFlags.NotEditable
                     || pObject.hideFlags == HideFlags.HideAndDontSave)
                 {
                     continue;
