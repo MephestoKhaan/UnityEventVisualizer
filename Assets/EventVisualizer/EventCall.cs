@@ -11,6 +11,14 @@ namespace EventVisualizer.Base
         public string Method { get; private set; }
         public string ReceiverComponentName { get; private set; }
 
+        public string MethodFullPath
+        {
+            get
+            {
+                return ReceiverComponentName + Method;
+            }
+        }
+
         private static Regex parenteshesPattern = new Regex(@"\.(.*)\)");
 
         public EventCall(Object sender, Object receiver, string eventName, string method)
@@ -18,7 +26,7 @@ namespace EventVisualizer.Base
             Sender = sender as Component ? (sender as Component).gameObject : sender ;
             Receiver = receiver as Component ? (receiver as Component).gameObject : receiver;
             EventName = eventName;
-            Method = method;
+            Method =  method;
 
             UpdateReceiverComponentName(receiver);
         }

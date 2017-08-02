@@ -89,20 +89,22 @@ namespace EventVisualizer.Base
         {
             foreach (EventCall call in _runtimeInstance.Outputs)
             {
-                string title = ObjectNames.NicifyVariableName(call.EventName);
+                string name = call.EventName;
+                string title = ObjectNames.NicifyVariableName(name);
                 if (!outputSlots.Any(s => s.title == title))
                 {
-                    var slot = AddOutputSlot(call.EventName);
+                    var slot = AddOutputSlot(name);
                     slot.title = title;
                 }
             }
 
             foreach (EventCall call in _runtimeInstance.Inputs)
             {
-                string title = ObjectNames.NicifyVariableName(call.ReceiverComponentName +  call.Method);
+                string name = call.MethodFullPath;
+                string title = ObjectNames.NicifyVariableName(name);
                 if (!inputSlots.Any(s => s.title == title))
                 {
-                    var slot = AddInputSlot(call.Method);
+                    var slot = AddInputSlot(name);
                     slot.title = title;
                 }
             }
@@ -117,7 +119,7 @@ namespace EventVisualizer.Base
                 foreach(var call in outCalls)
                 {
                     var targetNode = graph[call.Receiver.GetInstanceID().ToString()];
-                    var inSlot = targetNode[call.Method];
+                    var inSlot = targetNode[call.MethodFullPath];
 
                     if(!graph.Connected(outSlot, inSlot))
                     {
