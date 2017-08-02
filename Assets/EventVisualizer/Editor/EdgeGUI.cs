@@ -76,7 +76,7 @@ namespace EventVisualizer.Base
                 count++;
             }
 
-            return Mathf.Repeat( (index%2==0? (float)index : index + count*0.5f) / count, 1f);
+            return Mathf.Repeat( (index%2==0? (float)index : index + (count+1f)*0.5f) / count, 1f);
 
         }
 
