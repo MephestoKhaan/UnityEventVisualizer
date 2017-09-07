@@ -19,7 +19,7 @@ namespace EventVisualizer.Base
             }
         }
 
-        private static Regex parenteshesPattern = new Regex(@"\.(.*)\)");
+        private static Regex parenteshesPattern = new Regex(@"\((.*)\)");
 
         public EventCall(Object sender, Object receiver, string eventName, string method)
         {
