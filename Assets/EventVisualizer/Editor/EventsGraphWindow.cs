@@ -22,28 +22,18 @@ namespace EventVisualizer.Base
 
         public void Initialize()
         {
-            if (_graph == null)
-            {
-                _graph = EventsGraph.Create();
-                _graph.BuildGraph();
+            _graph = EventsGraph.Create();
+            _graph.BuildGraph();
 
-                _graphGUI = _graph.GetEditor();
-                _graphGUI.CenterGraph();
+            _graphGUI = _graph.GetEditor();
+            _graphGUI.CenterGraph();
 
-                EditorUtility.SetDirty(_graphGUI);
-                EditorUtility.SetDirty(_graph);
-            }
-        }
-
-        private void OnDestroy()
-        {
-            Debug.Log("DESTROY");
+            EditorUtility.SetDirty(_graphGUI);
+            EditorUtility.SetDirty(_graph);
         }
 
         void OnGUI()
         {
-            //Initialize();
-
             var width = position.width;
             var height = position.height;
 

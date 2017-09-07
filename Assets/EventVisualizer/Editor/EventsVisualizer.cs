@@ -27,31 +27,7 @@ namespace EventVisualizer.Base
             }
             return calls;
         }
-
-        private static List<EventCall> ExtractDefaultEventTriggers(Component caller)
-        {
-            List<EventCall> calls = new List<EventCall>();
-            EventTrigger eventTrigger = caller as EventTrigger;
-            if (eventTrigger != null)
-            {
-                foreach (EventTrigger.Entry trigger in eventTrigger.triggers)
-                {
-                    for (int i = 0; i < trigger.callback.GetPersistentEventCount(); i++)
-                    {
-                        calls.Add(new EventCall(caller,
-                                  trigger.callback.GetPersistentTarget(i),
-                                 trigger.eventID.ToString(),
-                                 trigger.callback.GetPersistentMethodName(i)));
-                    }
-
-                }
-            }
-
-            return calls;
-        }
-
-
-
+        
         private static List<EventCall> ExtractEvents(Component caller, SerializedObject serializedObject)
         {
             SerializedProperty iterator = serializedObject.GetIterator();
@@ -84,6 +60,27 @@ namespace EventVisualizer.Base
             return calls;
         }
 
+        private static List<EventCall> ExtractDefaultEventTriggers(Component caller)
+        {
+            List<EventCall> calls = new List<EventCall>();
+            EventTrigger eventTrigger = caller as EventTrigger;
+            if (eventTrigger != null)
+            {
+                foreach (EventTrigger.Entry trigger in eventTrigger.triggers)
+                {
+                    for (int i = 0; i < trigger.callback.GetPersistentEventCount(); i++)
+                    {
+                        calls.Add(new EventCall(caller,
+                                  trigger.callback.GetPersistentTarget(i),
+                                 trigger.eventID.ToString(),
+                                 trigger.callback.GetPersistentMethodName(i)));
+                    }
+
+                }
+            }
+
+            return calls;
+        }
 
         public static List<GameObject> GetAllObjectsInScene(bool rootOnly = false)
         {
