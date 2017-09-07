@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace EventVisualizer.Base
 {
+    [System.Serializable]
     public class EventCall
     {
         public Object Sender { get; private set; }

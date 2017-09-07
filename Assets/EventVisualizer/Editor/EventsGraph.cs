@@ -6,11 +6,13 @@ using System.Linq;
 
 namespace EventVisualizer.Base
 {
+    [System.Serializable]
     public class EventsGraph : Graph
     {
         static public EventsGraph Create()
         {
             var graph = CreateInstance<EventsGraph>();
+            graph.hideFlags = HideFlags.HideAndDontSave;
             return graph;
         }
 
@@ -46,6 +48,7 @@ namespace EventVisualizer.Base
 
 #region sorting
 
+        [SerializeField]
         private HashSet<Node> positionedNodes = new HashSet<Node>();
         private const float VERTICAL_SPACING = 80f;
         private const float HORIZONTAL_SPACING = 400f;

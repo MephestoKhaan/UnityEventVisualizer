@@ -6,9 +6,11 @@ using UnityEditor.Graphs;
 
 namespace EventVisualizer.Base
 {
+    [System.Serializable]
     public class EventsGraphGUI : GraphGUI
     {
-        public int SelectionOverride { get; set; } //TODO not nice
+        [SerializeField]
+        public int SelectionOverride;
         
         public override void OnGraphGUI()
         {

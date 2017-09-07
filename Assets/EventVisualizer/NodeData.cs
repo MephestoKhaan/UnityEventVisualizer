@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace EventVisualizer.Base
 {
+    [System.Serializable]
     public class NodeData
     {
         public Object Entity { get; private set; }
@@ -15,11 +16,11 @@ namespace EventVisualizer.Base
             }
         }
 
-
+        
         public List<EventCall> Outputs { get; private set; }
         public List<EventCall> Inputs { get; private set; }
 
-        
+        [SerializeField]
         private static Dictionary<Object, NodeData> nodes = new Dictionary<Object, NodeData>();
 
         public static ICollection<NodeData> Nodes

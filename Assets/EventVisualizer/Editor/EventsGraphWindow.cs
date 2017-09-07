@@ -3,48 +3,54 @@ using UnityEngine;
 
 namespace EventVisualizer.Base
 {
-
     public class EventsGraphWindow : EditorWindow
     {
+        [SerializeField]
         private EventsGraph _graph;
+        [SerializeField]
         private EventsGraphGUI _graphGUI;
+
+        private const float kBarHeight = 17;
 
         [MenuItem("Window/Events Graph editor")]
         static void ShowEditor()
         {
             EventsGraphWindow editor = EditorWindow.GetWindow<EventsGraphWindow>();
+            editor.hideFlags = HideFlags.HideAndDontSave;
             editor.Initialize();
-
         }
 
         public void Initialize()
         {
-            hideFlags = HideFlags.HideAndDontSave;
-            _graph = EventsGraph.Create();
-            _graphGUI = _graph.GetEditor();
-            
-            _graph.BuildGraph();
+            if (_graph == null)
+            {
+                _graph = EventsGraph.Create();
+                _graph.BuildGraph();
 
-            _graphGUI.CenterGraph();
+                _graphGUI = _graph.GetEditor();
+                _graphGUI.CenterGraph();
+
+                EditorUtility.SetDirty(_graphGUI);
+                EditorUtility.SetDirty(_graph);
+            }
+        }
+
+        private void OnDestroy()
+        {
+            Debug.Log("DESTROY");
         }
 
         void OnGUI()
         {
-            if(_graph == null)
-            {
-                Initialize();
-                return;
-            }
-            const float kBarHeight = 17;
+            //Initialize();
+
             var width = position.width;
             var height = position.height;
-
 
             // Main graph area
             _graphGUI.BeginGraphGUI(this, new Rect(0, 0, width, height - kBarHeight));
             _graphGUI.OnGraphGUI();
             _graphGUI.EndGraphGUI();
-
 
             // Clear selection on background click
             var e = Event.current;
@@ -53,7 +59,7 @@ namespace EventVisualizer.Base
 
             // Status bar
             GUILayout.BeginArea(new Rect(0, height - kBarHeight, width, kBarHeight));
-            if(GUILayout.Button("Refresh"))
+            if (GUILayout.Button("Refresh"))
             {
                 Refresh();
             }
@@ -65,7 +71,7 @@ namespace EventVisualizer.Base
             _graphGUI.SelectionOverride = overrideIndex;
             EditorUtility.SetDirty(this);
         }
-        
+
 
         void Refresh()
         {

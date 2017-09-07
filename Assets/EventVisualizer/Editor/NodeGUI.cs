@@ -53,12 +53,6 @@ namespace EventVisualizer.Base
         public override void Dirty()
         {
             base.Dirty();
-
-            // Update serialized position info if it's changed.
-            if (isValid)
-            {
-                _serializedObject.Update();
-            }
         }
 
         #endregion
@@ -66,11 +60,7 @@ namespace EventVisualizer.Base
         #region Private members
 
         // Runtime instance of this node
-        [NonSerialized] NodeData _runtimeInstance;
-
-        // Serialized property accessor
-        SerializedObject _serializedObject;
-        
+        NodeData _runtimeInstance;
 
         // Initializer (called from the Create method)
         void Initialize(NodeData runtimeInstance)
@@ -79,7 +69,6 @@ namespace EventVisualizer.Base
 
             // Object references
             _runtimeInstance = runtimeInstance;
-            _serializedObject = new UnityEditor.SerializedObject(runtimeInstance.Entity);
             position = new Rect(Vector2.one * UnityEngine.Random.Range(0, 500), Vector2.zero);
 
             PopulateSlots();
@@ -110,25 +99,25 @@ namespace EventVisualizer.Base
             }
         }
 
-        public void PopulateEdges() 
+        public void PopulateEdges()
         {
-            foreach(var outSlot in outputSlots)
+            foreach (var outSlot in outputSlots)
             {
                 List<EventCall> outCalls = _runtimeInstance.Outputs.FindAll(call => call.EventName == outSlot.name);
 
-                foreach(var call in outCalls)
+                foreach (var call in outCalls)
                 {
                     var targetNode = graph[call.Receiver.GetInstanceID().ToString()];
                     var inSlot = targetNode[call.MethodFullPath];
 
-                    if(!graph.Connected(outSlot, inSlot))
+                    if (!graph.Connected(outSlot, inSlot))
                     {
                         graph.Connect(outSlot, inSlot);
                     }
                 }
             }
         }
-        
+
         #endregion
     }
 }
