@@ -2,6 +2,8 @@
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.EventSystems;
+using System.Reflection;
+using UnityEngine.Events;
 
 namespace EventVisualizer.Base
 {
@@ -40,12 +42,13 @@ namespace EventVisualizer.Base
                 SerializedProperty persistentCalls = iterator.FindPropertyRelative("m_PersistentCalls.m_Calls");
                 if (persistentCalls != null)
                 {
+
                     for (int i = 0; i < persistentCalls.arraySize; ++i)
                     {
                         SerializedProperty methodName = persistentCalls.GetArrayElementAtIndex(i).FindPropertyRelative("m_MethodName");
                         SerializedProperty target = persistentCalls.GetArrayElementAtIndex(i).FindPropertyRelative("m_Target");
                         Object receiver = EditorUtility.InstanceIDToObject(target.objectReferenceInstanceIDValue);
-
+                        
                         if (receiver != null)
                         {
                             calls.Add(new EventCall(caller,

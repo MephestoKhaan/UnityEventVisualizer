@@ -37,15 +37,19 @@ namespace EventVisualizer.Base
             var width = position.width;
             var height = position.height;
 
-            // Main graph area
-            _graphGUI.BeginGraphGUI(this, new Rect(0, 0, width, height - kBarHeight));
-            _graphGUI.OnGraphGUI();
-            _graphGUI.EndGraphGUI();
+            if(_graphGUI != null)
+            {
+                // Main graph area
+                _graphGUI.BeginGraphGUI(this, new Rect(0, 0, width, height - kBarHeight));
+                _graphGUI.OnGraphGUI();
+                _graphGUI.EndGraphGUI();
 
-            // Clear selection on background click
-            var e = Event.current;
-            if (e.type == EventType.MouseDown && e.clickCount == 1)
-                _graphGUI.ClearSelection();
+                // Clear selection on background click
+                var e = Event.current;
+                if (e.type == EventType.MouseDown && e.clickCount == 1)
+                    _graphGUI.ClearSelection();
+            }
+
 
             // Status bar
             GUILayout.BeginArea(new Rect(0, height - kBarHeight, width, kBarHeight));
