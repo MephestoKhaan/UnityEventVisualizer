@@ -9,7 +9,7 @@ It creates a graph in which nodes are <b>gameobjects</b>, outputs are any type o
 
 <h2>How</h2>
 
-- Grab the installer from the <b>Releases</b> section and import it into your project.
+- Grab the installer from the <b>Releases</b> section and import it into your project. Works in <b>Unity 5.6+</b>
 
 - Select ```Windows/Events Graph Editor``` you can open the graph.
 ![Selector](https://media.giphy.com/media/l1J9LcPkjgvxoUsBW/giphy.gif)
