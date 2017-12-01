@@ -56,9 +56,9 @@ namespace EventVisualizer.Base
                 foreach (var edge in host.graph.edges)
                 {
                     if (edge == _moveEdge) continue;
-                    
+
                     float hue = HueOutputSlot(edge.fromSlot);
-                    DrawEdge(edge,  Color.HSVToRGB(hue, 1f, 1f));
+                    DrawEdge(edge, Color.HSVToRGB(hue, 1f, 1f));
                 }
             }
         }
@@ -67,37 +67,37 @@ namespace EventVisualizer.Base
         {
             int count = 0;
             int index = 0;
-            foreach(var s in slot.node.outputSlots)
+            foreach (var s in slot.node.outputSlots)
             {
-                if(s == slot)
+                if (s == slot)
                 {
-                    index = count ;
+                    index = count;
                 }
                 count++;
             }
 
-            return Mathf.Repeat( (index%2==0? (float)index : index + (count+1f)*0.5f) / count, 1f);
+            return Mathf.Repeat((index % 2 == 0 ? (float)index : index + (count + 1f) * 0.5f) / count, 1f);
 
         }
 
         public void DoDraggedEdge()
         {
-            
+
         }
 
         public void BeginSlotDragging(Graphs.Slot slot, bool allowStartDrag, bool allowEndDrag)
         {
-            
+
         }
 
         public void SlotDragging(Graphs.Slot slot, bool allowEndDrag, bool allowMultiple)
         {
-            
+
         }
 
         public void EndSlotDragging(Graphs.Slot slot, bool allowMultiple)
         {
-           
+
         }
 
 
@@ -131,16 +131,27 @@ namespace EventVisualizer.Base
         {
             var p1 = GetPositionAsFromSlot(edge.fromSlot);
             var p2 = GetPositionAsToSlot(edge.toSlot);
-            DrawEdge(p1, p2, color * edge.color);
+            DrawEdge(p1, p2, color * edge.color, null);
         }
 
-        static void DrawEdge(Vector2 p1, Vector2 p2, Color color)
+        static void DrawEdge(Vector2 p1, Vector2 p2, Color color, float? t)
         {
+            Color prevColor = Handles.color;
+            Handles.color = color;
+
             var l = Mathf.Min(Mathf.Abs(p1.y - p2.y), 50);
-            var p3 = p1 + new Vector2(l, 0);
-            var p4 = p2 - new Vector2(l, 0);
+            Vector2 p3 = p1 + new Vector2(l, 0);
+            Vector2 p4 = p2 - new Vector2(l, 0);
             var texture = (Texture2D)Graphs.Styles.connectionTexture.image;
             Handles.DrawBezier(p1, p2, p3, p4, color, texture, kEdgeWidth);
+
+            if(t.HasValue)
+            {
+                Vector3 pos = CalculateBezierPoint(t.Value, p1, p2, p4, p3);
+                Handles.DrawSolidArc(pos, Vector3.back, p2, 360, kEdgeWidth * 2);
+            }
+
+            Handles.color = prevColor;
         }
 
         #endregion
@@ -176,5 +187,22 @@ namespace EventVisualizer.Base
         }
 
         #endregion
+
+        private static Vector3 CalculateBezierPoint(float t, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
+        {
+            float u = 1.0f - t;
+            float tt = t * t;
+            float uu = u * u;
+            float uuu = uu * u;
+            float ttt = tt * t;
+
+            Vector3 p = uuu * p0; 
+            p += 3 * uu * t * p1; 
+            p += 3 * u * tt * p2; 
+            p += ttt * p3; 
+
+            return p;
+        }
     }
+
 }

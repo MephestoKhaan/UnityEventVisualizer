@@ -105,14 +105,14 @@ namespace EventVisualizer.Base
             {
                 List<EventCall> outCalls = _runtimeInstance.Outputs.FindAll(call => call.EventName == outSlot.name);
 
-                foreach (var call in outCalls)
+                foreach (EventCall call in outCalls)
                 {
                     var targetNode = graph[call.Receiver.GetInstanceID().ToString()];
                     var inSlot = targetNode[call.MethodFullPath];
 
                     if (!graph.Connected(outSlot, inSlot))
                     {
-                        graph.Connect(outSlot, inSlot);
+                        Edge edge = graph.Connect(outSlot, inSlot);
                     }
                 }
             }

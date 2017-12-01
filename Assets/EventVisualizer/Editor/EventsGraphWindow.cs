@@ -59,7 +59,7 @@ namespace EventVisualizer.Base
             }
             GUILayout.EndArea();
         }
-
+        
         public void OverrideSelection(int overrideIndex)
         {
             _graphGUI.SelectionOverride = overrideIndex;
