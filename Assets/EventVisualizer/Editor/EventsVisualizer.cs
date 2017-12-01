@@ -22,17 +22,16 @@ namespace EventVisualizer.Base
                     {
                         continue;
                     }
-                    SerializedObject serializedObject = new UnityEditor.SerializedObject(caller);
-                    calls.AddRange(ExtractEvents(caller, serializedObject));
+                    calls.AddRange(ExtractEvents(caller));
                     calls.AddRange(ExtractDefaultEventTriggers(caller));
                 }
             }
             return calls;
         }
         
-        private static List<EventCall> ExtractEvents(Component caller, SerializedObject serializedObject)
+        private static List<EventCall> ExtractEvents(Component caller)
         {
-            SerializedProperty iterator = serializedObject.GetIterator();
+            SerializedProperty iterator = new SerializedObject(caller).GetIterator();
             iterator.Next(true);
 
             List<EventCall> calls = new List<EventCall>();
@@ -42,7 +41,7 @@ namespace EventVisualizer.Base
                 SerializedProperty persistentCalls = iterator.FindPropertyRelative("m_PersistentCalls.m_Calls");
                 if (persistentCalls != null)
                 {
-
+                    UnityEvent trigger = FindEvent(caller, iterator);
                     for (int i = 0; i < persistentCalls.arraySize; ++i)
                     {
                         SerializedProperty methodName = persistentCalls.GetArrayElementAtIndex(i).FindPropertyRelative("m_MethodName");
@@ -54,7 +53,8 @@ namespace EventVisualizer.Base
                             calls.Add(new EventCall(caller,
                                 receiver,
                                 iterator.displayName,
-                                methodName.stringValue));
+                                methodName.stringValue,
+                                trigger));
                         }
                     }
                 }
@@ -76,7 +76,8 @@ namespace EventVisualizer.Base
                         calls.Add(new EventCall(caller,
                                   trigger.callback.GetPersistentTarget(i),
                                  trigger.eventID.ToString(),
-                                 trigger.callback.GetPersistentMethodName(i)));
+                                 trigger.callback.GetPersistentMethodName(i),
+                                 null));
                     }
 
                 }
@@ -118,6 +119,26 @@ namespace EventVisualizer.Base
             }
 
             return pReturn;
+        }
+
+        private static UnityEvent FindEvent(Component caller, SerializedProperty iterator)
+        {
+
+            PropertyInfo eventPropertyInfo = caller.GetType().GetProperty(iterator.propertyPath);
+            if (eventPropertyInfo == null)
+            {
+                //transform m_OnClick into onClick
+                string fieldToPropertyName = iterator.propertyPath.Replace("m_", "");
+                fieldToPropertyName = fieldToPropertyName[0].ToString().ToLower() + fieldToPropertyName.Substring(1);
+
+                eventPropertyInfo = caller.GetType().GetProperty(fieldToPropertyName);
+            }
+            if (eventPropertyInfo != null)
+            {
+                UnityEvent trigger = eventPropertyInfo.GetValue(caller, null) as UnityEvent;
+                return trigger;
+            }
+            return null;
         }
     }
 }

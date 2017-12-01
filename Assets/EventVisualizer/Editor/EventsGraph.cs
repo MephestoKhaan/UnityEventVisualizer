@@ -29,7 +29,7 @@ namespace EventVisualizer.Base
         {
             NodeData.Clear();
             Clear(true);
-            foreach (var call in EventsFinder.FindAllEvents())
+            foreach (EventCall call in EventsFinder.FindAllEvents())
             {
                 NodeData.RegisterEvent(call);
             }

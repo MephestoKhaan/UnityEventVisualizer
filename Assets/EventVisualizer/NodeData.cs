@@ -15,10 +15,20 @@ namespace EventVisualizer.Base
                 return Entity != null ? Entity.name : "<Missing>";
             }
         }
-
         
         public List<EventCall> Outputs { get; private set; }
         public List<EventCall> Inputs { get; private set; }
+
+        public void AddOutput(EventCall eventCall)
+        {
+            Outputs.Add(eventCall);
+            eventCall.OnTriggered += (() => Debug.Log("Triggered"));
+        }
+
+        public void AddInput(EventCall eventCall)
+        {
+            Inputs.Add(eventCall);
+        }
 
         [SerializeField]
         private static Dictionary<Object, NodeData> nodes = new Dictionary<Object, NodeData>();
@@ -32,6 +42,7 @@ namespace EventVisualizer.Base
         }
         
 
+
         public static void Clear() 
         {
             nodes.Clear();
@@ -42,8 +53,8 @@ namespace EventVisualizer.Base
             CreateNode(eventCall.Sender);
             CreateNode(eventCall.Receiver);
 
-            nodes[eventCall.Sender].Outputs.Add(eventCall);
-            nodes[eventCall.Receiver].Inputs.Add(eventCall);
+            nodes[eventCall.Sender].AddOutput(eventCall);
+            nodes[eventCall.Receiver].AddInput(eventCall);
         }
 
         private static void CreateNode(Object entity)
@@ -52,6 +63,7 @@ namespace EventVisualizer.Base
             {
                 nodes.Add(entity, new NodeData(entity));
             }
+
         }
         
         public NodeData(Object entity)

@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace EventVisualizer.Base
 {
@@ -20,9 +21,11 @@ namespace EventVisualizer.Base
             }
         }
 
+        public System.Action OnTriggered;
+
         private static Regex parenteshesPattern = new Regex(@"\((.*)\)");
 
-        public EventCall(Object sender, Object receiver, string eventName, string method)
+        public EventCall(Object sender, Object receiver, string eventName, string method, UnityEvent trigger)
         {
             Sender = sender as Component ? (sender as Component).gameObject : sender ;
             Receiver = receiver as Component ? (receiver as Component).gameObject : receiver;
@@ -30,6 +33,14 @@ namespace EventVisualizer.Base
             Method =  method;
 
             UpdateReceiverComponentName(receiver);
+
+            if(trigger != null)
+            {
+                trigger.AddListener(() =>
+                {
+                    if (OnTriggered != null) { OnTriggered.Invoke(); }
+                });
+            }
         }
 
         private void UpdateReceiverComponentName(Object component)
