@@ -50,7 +50,7 @@ namespace EventVisualizer.Base
             DragSelection(new Rect(-5000, -5000, 10000, 10000));
             
         }
-
+        
         public override IEdgeGUI edgeGUI
         {
             get
@@ -60,6 +60,8 @@ namespace EventVisualizer.Base
                 return m_EdgeGUI;
             }
         }
+
+        
         
 
         public override void NodeGUI(Node node)

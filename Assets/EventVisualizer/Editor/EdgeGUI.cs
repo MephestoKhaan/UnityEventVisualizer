@@ -48,6 +48,7 @@ namespace EventVisualizer.Base
 
         #region IEdgeGUI implementation
 
+
         public void DoEdges()
         {
             // Draw edges on repaint.
@@ -62,6 +63,7 @@ namespace EventVisualizer.Base
                 }
             }
         }
+
 
         private float HueOutputSlot(Slot slot)
         {
@@ -131,10 +133,10 @@ namespace EventVisualizer.Base
         {
             var p1 = GetPositionAsFromSlot(edge.fromSlot);
             var p2 = GetPositionAsToSlot(edge.toSlot);
-            DrawEdge(p1, p2, color * edge.color, null);
+            DrawEdge(p1, p2, color * edge.color, EdgeTriggersTracker.GetTimings(edge));
         }
 
-        static void DrawEdge(Vector2 p1, Vector2 p2, Color color, float? t)
+        static void DrawEdge(Vector2 p1, Vector2 p2, Color color, List<float> triggers)
         {
             Color prevColor = Handles.color;
             Handles.color = color;
@@ -145,10 +147,12 @@ namespace EventVisualizer.Base
             var texture = (Texture2D)Graphs.Styles.connectionTexture.image;
             Handles.DrawBezier(p1, p2, p3, p4, color, texture, kEdgeWidth);
 
-            if(t.HasValue)
+
+            foreach (var trigger in triggers)
             {
-                Vector3 pos = CalculateBezierPoint(t.Value, p1, p2, p4, p3);
-                Handles.DrawSolidArc(pos, Vector3.back, p2, 360, kEdgeWidth * 2);
+                Vector3 pos = CalculateBezierPoint(trigger, p1, p2, p3, p4);
+                Handles.DrawSolidArc(pos, Vector3.back, pos + Vector3.up, 360, kEdgeWidth * 2);
+
             }
 
             Handles.color = prevColor;
@@ -196,10 +200,10 @@ namespace EventVisualizer.Base
             float uuu = uu * u;
             float ttt = tt * t;
 
-            Vector3 p = uuu * p0; 
-            p += 3 * uu * t * p1; 
-            p += 3 * u * tt * p2; 
-            p += ttt * p3; 
+            Vector3 p = uuu * p0;
+            p += 3 * uu * t * p1;
+            p += 3 * u * tt * p2;
+            p += ttt * p3;
 
             return p;
         }

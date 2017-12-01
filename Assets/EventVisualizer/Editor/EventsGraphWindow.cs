@@ -59,11 +59,18 @@ namespace EventVisualizer.Base
             }
             GUILayout.EndArea();
         }
-        
+
+        private void Update()
+        {
+            if(EdgeTriggersTracker.HasData())
+            {
+                Repaint();
+            }
+        }
+
         public void OverrideSelection(int overrideIndex)
         {
             _graphGUI.SelectionOverride = overrideIndex;
-            EditorUtility.SetDirty(this);
         }
 
 
