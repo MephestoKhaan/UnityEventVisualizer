@@ -41,7 +41,7 @@ namespace EventVisualizer.Base
                 SerializedProperty persistentCalls = iterator.FindPropertyRelative("m_PersistentCalls.m_Calls");
                 if (persistentCalls != null)
                 {
-                    UnityEvent trigger = FindEvent(caller, iterator);
+                    UnityEvent unityEvent = FindEvent(caller, iterator);
                     for (int i = 0; i < persistentCalls.arraySize; ++i)
                     {
                         SerializedProperty methodName = persistentCalls.GetArrayElementAtIndex(i).FindPropertyRelative("m_MethodName");
@@ -54,7 +54,7 @@ namespace EventVisualizer.Base
                                 receiver,
                                 iterator.displayName,
                                 methodName.stringValue,
-                                trigger));
+                                unityEvent));
                         }
                     }
                 }
@@ -77,7 +77,7 @@ namespace EventVisualizer.Base
                                   trigger.callback.GetPersistentTarget(i),
                                  trigger.eventID.ToString(),
                                  trigger.callback.GetPersistentMethodName(i),
-                                 null));
+                                 trigger.callback));
                     }
 
                 }

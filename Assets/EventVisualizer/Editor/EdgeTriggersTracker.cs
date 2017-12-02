@@ -14,7 +14,7 @@ namespace EventVisualizer.Base
             public float triggeredTime;
         }
 
-        private readonly static float TimeToLive = 5f;
+        private readonly static float TimeToLive = 1f;
         private static List<EdgeTrigger> triggers = new List<EdgeTrigger>();
 
         public static void RegisterTrigger(Edge edge)
