@@ -121,13 +121,12 @@ namespace EventVisualizer.Base
             return pReturn;
         }
 
+
         private static UnityEvent FindEvent(Component caller, SerializedProperty iterator)
         {
-
             PropertyInfo eventPropertyInfo = caller.GetType().GetProperty(iterator.propertyPath);
             if (eventPropertyInfo == null)
             {
-                //transform m_OnClick into onClick
                 string fieldToPropertyName = iterator.propertyPath.Replace("m_", "");
                 fieldToPropertyName = fieldToPropertyName[0].ToString().ToLower() + fieldToPropertyName.Substring(1);
 
@@ -136,6 +135,20 @@ namespace EventVisualizer.Base
             if (eventPropertyInfo != null)
             {
                 UnityEvent trigger = eventPropertyInfo.GetValue(caller, null) as UnityEvent;
+                return trigger;
+            }
+
+            FieldInfo eventFieldInfo = caller.GetType().GetField(iterator.propertyPath);
+            if (eventFieldInfo == null)
+            {
+                string fieldToFieldName = iterator.propertyPath.Replace("m_", "");
+                fieldToFieldName = fieldToFieldName[0].ToString().ToLower() + fieldToFieldName.Substring(1);
+
+                eventFieldInfo = caller.GetType().GetField(fieldToFieldName);
+            }
+            if (eventFieldInfo != null)
+            {
+                UnityEvent trigger = eventFieldInfo.GetValue(caller) as UnityEvent;
                 return trigger;
             }
             return null;
