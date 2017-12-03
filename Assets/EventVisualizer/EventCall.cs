@@ -36,6 +36,7 @@ namespace EventVisualizer.Base
             UpdateReceiverComponentName(receiver);
             AttachTrigger(unityEvent);
         }
+
         private void AttachTrigger(UnityEventBase unityEvent)
         {
             if (unityEvent == null)
@@ -45,67 +46,134 @@ namespace EventVisualizer.Base
             MethodInfo eventRegisterMethod = unityEvent.GetType().GetMethod("AddListener");
             if (eventRegisterMethod != null)
             {
-                ParameterInfo parameter = eventRegisterMethod.GetParameters()[0];
+                System.Type eventType = eventRegisterMethod.GetParameters()[0].ParameterType;
+                ParameterInfo[] eventParameters = eventType.GetMethod("Invoke").GetParameters(); 
                 
-                var parameterType = parameter.ParameterType;
-                if (parameterType.Name == "UnityAction")
+                if (eventParameters.Length == 0)
                 {
-                    eventRegisterMethod.Invoke(unityEvent, new object[]
-                    { new UnityAction(() =>
-                        { if (OnTriggered != null)
-                                OnTriggered.Invoke();
-                        })
-                    });
-                }
-                /*if (parameterType.Name == "UnityAction`1")
-                {
-                    eventRegisterMethod.Invoke(unityEvent, new object[]
-                    { new UnityAction<UnityEngine.EventSystems.BaseEventData>((a) =>
-                        { if (OnTriggered != null)
-                                OnTriggered.Invoke();
-                        })
-                    });
-                }*/
-                if (parameterType.Name == "UnityAction`1")
-                {
-                    //object param = System.Activator.CreateInstance(typeof(UnityAction<>).MakeGenericType(new System.Type[] { }));
-                    System.Type type = typeof(UnityAction<>).MakeGenericType(new System.Type[] { typeof(UnityEngine.EventSystems.BaseEventData) });
-                    //System.Delegate del = System.Delegate.CreateDelegate(parameterType, this, "TriggerOneArg);
+                    MethodInfo methodInfo = this.GetType()
+                        .GetMethod("TriggerZeroArgs", BindingFlags.Public | BindingFlags.Instance);
 
-                    MethodInfo vesselMethod = this.GetType().GetMethod("TriggerOneArg");
-                    System.Delegate triggerAction = System.Delegate.CreateDelegate(parameterType, vesselMethod);
+                    System.Type actionT = typeof(UnityAction);
+                    System.Delegate triggerAction = System.Delegate.CreateDelegate(actionT, this, methodInfo);
+
                     eventRegisterMethod.Invoke(unityEvent, new object[]
                     {
-                        System.Activator.CreateInstance(parameterType, triggerAction)
+                        triggerAction
                     });
                 }
 
-                /*
-                if (parameterType.Name == "UnityAction`2")
+                else if (eventParameters.Length == 1)
                 {
-                    eventRegisterMethod.Invoke(unityEvent, new object[] { new UnityAction<object, object>((a, b) => Debug.Log("AR2")) });
+                    System.Type t0 = eventParameters[0].ParameterType;
+
+                    MethodInfo methodInfo = this.GetType()
+                        .GetMethod("TriggerOneArg", BindingFlags.Public | BindingFlags.Instance)
+                        .MakeGenericMethod(t0);
+
+                    System.Type actionT = typeof(UnityAction<>).MakeGenericType(t0);
+                    System.Delegate triggerAction = System.Delegate.CreateDelegate(actionT, this, methodInfo);
+
+                    eventRegisterMethod.Invoke(unityEvent, new object[]
+                    {
+                        triggerAction
+                    });
                 }
-                if (parameterType.Name == "UnityAction`3")
+                else if (eventParameters.Length == 2)
                 {
-                    eventRegisterMethod.Invoke(unityEvent, new object[] { new UnityAction<object, object, object>((a, b, c) => Debug.Log("AR3")) });
+                    System.Type t0 = eventParameters[0].ParameterType;
+                    System.Type t1 = eventParameters[1].ParameterType;
+
+                    MethodInfo methodInfo = this.GetType()
+                        .GetMethod("TriggerTwoArgs", BindingFlags.Public | BindingFlags.Instance)
+                        .MakeGenericMethod(t0, t1);
+
+                    System.Type actionT = typeof(UnityAction<,>).MakeGenericType(t0, t1);
+                    System.Delegate triggerAction = System.Delegate.CreateDelegate(actionT, this, methodInfo);
+
+                    eventRegisterMethod.Invoke(unityEvent, new object[]
+                    {
+                        triggerAction
+                    });
                 }
-                if (parameterType.Name == "UnityAction`4")
+                else if (eventParameters.Length == 3)
                 {
-                    eventRegisterMethod.Invoke(unityEvent, new object[] { new UnityAction<object, object, object, object>((a, b, c, d) => Debug.Log("AR4")) });
+                    System.Type t0 = eventParameters[0].ParameterType;
+                    System.Type t1 = eventParameters[1].ParameterType;
+                    System.Type t2 = eventParameters[2].ParameterType;
+
+                    MethodInfo methodInfo = this.GetType()
+                        .GetMethod("TriggerThreeArgs", BindingFlags.Public | BindingFlags.Instance)
+                        .MakeGenericMethod(t0, t1,t2);
+
+                    System.Type actionT = typeof(UnityAction<,,>).MakeGenericType(t0, t1,t2);
+                    System.Delegate triggerAction = System.Delegate.CreateDelegate(actionT, this, methodInfo);
+
+                    eventRegisterMethod.Invoke(unityEvent, new object[]
+                    {
+                        triggerAction
+                    });
                 }
-                */
+                else if (eventParameters.Length == 2)
+                {
+                    System.Type t0 = eventParameters[0].ParameterType;
+                    System.Type t1 = eventParameters[1].ParameterType;
+                    System.Type t2 = eventParameters[2].ParameterType;
+                    System.Type t3 = eventParameters[3].ParameterType;
+
+                    MethodInfo methodInfo = this.GetType()
+                        .GetMethod("TriggerFourArgs", BindingFlags.Public | BindingFlags.Instance)
+                        .MakeGenericMethod(t0, t1,t2,t3);
+
+                    System.Type actionT = typeof(UnityAction<,,,>).MakeGenericType(t0, t1, t2,t3);
+                    System.Delegate triggerAction = System.Delegate.CreateDelegate(actionT, this, methodInfo);
+
+                    eventRegisterMethod.Invoke(unityEvent, new object[]
+                    {
+                        triggerAction
+                    });
+                }
             }
         }
 
+        #region generic callers
         public void TriggerZeroArgs()
         {
-
+            if (OnTriggered != null)
+            {
+                OnTriggered.Invoke();
+            }
         }
 
-        public static void TriggerOneArg(UnityEngine.EventSystems.BaseEventData arg)
+        public void TriggerOneArg<T0>(T0 arg0)
         {
-            Debug.Log("whatever");
+            if (OnTriggered != null)
+            {
+                OnTriggered.Invoke();
+            }
         }
+        public void TriggerTwoArgs<T0,T1>(T0 arg0, T1 arg1)
+        {
+            if (OnTriggered != null)
+            {
+                OnTriggered.Invoke();
+            }
+        }
+        public void TriggerThreeArgs<T0,T1,T2>(T0 arg,T1 arg1, T2 arg2)
+        {
+            if (OnTriggered != null)
+            {
+                OnTriggered.Invoke();
+            }
+        }
+        public void TriggerFourArgs<T0, T1, T2, T3>(T0 arg, T1 arg1, T2 arg2, T3 arg3)
+        {
+            if (OnTriggered != null)
+            {
+                OnTriggered.Invoke();
+            }
+        }
+        #endregion
 
         private void UpdateReceiverComponentName(Object component)
         {

@@ -151,7 +151,7 @@ namespace EventVisualizer.Base
             foreach (var trigger in triggers)
             {
                 Vector3 pos = CalculateBezierPoint(trigger, p1, p3, p4, p2);
-                Handles.DrawSolidArc(pos, Vector3.back, pos + Vector3.up, 360, kEdgeWidth * 2);
+                Handles.DrawSolidArc(pos, Vector3.back, pos + Vector3.up, 360, kEdgeWidth *2);
 
             }
 
