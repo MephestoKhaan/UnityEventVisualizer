@@ -41,7 +41,7 @@ namespace EventVisualizer.Base
                 SerializedProperty persistentCalls = iterator.FindPropertyRelative("m_PersistentCalls.m_Calls");
                 if (persistentCalls != null)
                 {
-                    UnityEvent unityEvent = FindEvent(caller, iterator);
+                    UnityEventBase unityEvent = FindEvent(caller, iterator);
                     for (int i = 0; i < persistentCalls.arraySize; ++i)
                     {
                         SerializedProperty methodName = persistentCalls.GetArrayElementAtIndex(i).FindPropertyRelative("m_MethodName");
@@ -122,7 +122,7 @@ namespace EventVisualizer.Base
         }
 
 
-        private static UnityEvent FindEvent(Component caller, SerializedProperty iterator)
+        private static UnityEventBase FindEvent(Component caller, SerializedProperty iterator)
         {
             PropertyInfo eventPropertyInfo = caller.GetType().GetProperty(iterator.propertyPath);
             if (eventPropertyInfo == null)
@@ -134,8 +134,7 @@ namespace EventVisualizer.Base
             }
             if (eventPropertyInfo != null)
             {
-                UnityEvent trigger = eventPropertyInfo.GetValue(caller, null) as UnityEvent;
-                return trigger;
+                return eventPropertyInfo.GetValue(caller, null) as UnityEventBase;
             }
 
             FieldInfo eventFieldInfo = caller.GetType().GetField(iterator.propertyPath);
@@ -148,8 +147,7 @@ namespace EventVisualizer.Base
             }
             if (eventFieldInfo != null)
             {
-                UnityEvent trigger = eventFieldInfo.GetValue(caller) as UnityEvent;
-                return trigger;
+                return  eventFieldInfo.GetValue(caller) as UnityEventBase;
             }
             return null;
         }
