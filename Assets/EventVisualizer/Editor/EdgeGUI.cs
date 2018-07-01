@@ -58,28 +58,50 @@ namespace EventVisualizer.Base
 				{
 					if (edge == _moveEdge) continue;
 
-					float hue = HueOutputSlot(edge.fromSlot);
-					DrawEdge(edge, Color.HSVToRGB(hue, 1f, 1f));
+					Vector2Int indexes = FindSlotIndexes(edge);
+					DrawEdge(edge, indexes, ColorForIndex(indexes.x, indexes.y));
 				}
 			}
 		}
-
-
-		private float HueOutputSlot(Slot slot)
+		private Vector2Int FindSlotIndexes(Edge edge)
 		{
-			int count = 0;
-			int index = 0;
-			foreach (var s in slot.node.outputSlots)
+			Vector2Int indexes = Vector2Int.zero;
+
+			int totalOutputs = 0;
+			bool found = false;
+			foreach(var slot in edge.fromSlot.node.outputSlots)
 			{
-				if (s == slot)
+				if(slot != edge.fromSlot && !found)
 				{
-					index = count;
+					indexes.x++;
 				}
-				count++;
+				else
+				{
+					found = true;
+				}
+				totalOutputs++;
+			}
+			indexes.x = totalOutputs - indexes.x-1;
+
+			foreach (var slot in edge.toSlot.node.inputSlots)
+			{
+				if (slot != edge.toSlot)
+				{
+					indexes.y++;
+				}
+				else
+				{
+					break;
+				}
 			}
 
-			return Mathf.Repeat((index % 2 == 0 ? (float)index : index + (count + 1f) * 0.5f) / count, 1f);
+			return indexes;
+		}
 
+		private Color ColorForIndex(int index, int hash)
+		{
+			float hue = Mathf.Repeat(index+hash, 5f)/5f;
+			return Color.HSVToRGB(hue,1f,1f);
 		}
 
 		public void DoDraggedEdge()
@@ -127,13 +149,14 @@ namespace EventVisualizer.Base
 		#region Edge drawer
 
 		const float kEdgeWidth = 4;
-		const float kNodeEdgeSeparation = 12;
+		const float kNodeTitleSpace = 35;
+		const float kNodeEdgeSeparation = 11;
 
-		static void DrawEdge(Edge edge, Color color)
+		static void DrawEdge(Edge edge, Vector2Int indexes, Color color)
 		{
-			var p1 = GetPositionAsFromSlot(edge.fromSlot);
-			var p2 = GetPositionAsToSlot(edge.toSlot);
-			DrawEdge(p1, p2, color * edge.color, EdgeTriggersTracker.GetTimings(edge));
+			var p1 = GetPositionAsFromSlot(edge.fromSlot, indexes.x);
+			var p2 = GetPositionAsToSlot(edge.toSlot, indexes.y);
+			DrawEdge(p1, p2,  color * edge.color, EdgeTriggersTracker.GetTimings(edge));
 		}
 
 		static void DrawEdge(Vector2 p1, Vector2 p2, Color color, List<float> triggers)
@@ -162,46 +185,28 @@ namespace EventVisualizer.Base
 
 		#region Utilities to access private members
 
-		static Vector2 GetPositionAsFromSlot(Slot slot)
-		{
-			var rect = GetSlotPosition(slot);
-			return (new Vector2(rect.x, rect.y));
-		}
-
-		static Vector2 GetPositionAsToSlot(Slot slot)
-		{
-			var rect = GetSlotPosition(slot);
-			return (new Vector2(rect.x, rect.y));
-		}
-		
-		static Vector2 GetSlotPosition(Slot slot)
+		static Vector2 GetPositionAsFromSlot(Slot slot, int index)
 		{
 			NodeGUI node = slot.node as NodeGUI;
 			Vector2 pos = node.position.position;
-			pos.y = node.position.yMax - kNodeEdgeSeparation*0.5f;
-			
-			foreach (var inputSlot in node.slots)
-			{
-				if (inputSlot != slot)
-				{
-					pos.y -= kNodeEdgeSeparation;
-				}
-				else
-				{
-					break;
-				}
-			}
-			if (slot.isInputSlot)
-			{
-				pos.x = node.position.x;
-			}
-			else
-			{
-				pos.x = node.position.xMax;
-			}
-			
+			pos.y = node.position.yMax - kNodeEdgeSeparation * 0.5f;
+			pos.y -= kNodeEdgeSeparation * index;
+			pos.x = node.position.xMax;
+
 			return pos;
 		}
+
+		static Vector2 GetPositionAsToSlot(Slot slot, int index)
+		{
+			NodeGUI node = slot.node as NodeGUI;
+			Vector2 pos = node.position.position;
+			pos.y += kNodeTitleSpace;
+			pos.y += kNodeEdgeSeparation * index;
+			pos.x = node.position.x;
+
+			return pos;
+		}
+		
 
 		// Caller for GUIClip.Clip
 		static Vector2 GUIClip(Vector2 pos)
