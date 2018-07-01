@@ -59,7 +59,7 @@ namespace EventVisualizer.Base
 					if (edge == _moveEdge) continue;
 
 					Vector2Int indexes = FindSlotIndexes(edge);
-					DrawEdge(edge, indexes, ColorForIndex(indexes.x, 2*indexes.x));
+					DrawEdge(edge, indexes, ColorForIndex(indexes.x, 2* edge.fromSlotName.Length));
 				}
 			}
 		}
@@ -100,7 +100,7 @@ namespace EventVisualizer.Base
 
 		private Color ColorForIndex(int index, int hash)
 		{
-			float hue = Mathf.Repeat(index+hash, 5f)/5f;
+			float hue = Mathf.Repeat(index+hash, 10f)/10f;
 			return Color.HSVToRGB(hue,1f,1f);
 		}
 
