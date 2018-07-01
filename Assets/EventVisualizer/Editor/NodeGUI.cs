@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace EventVisualizer.Base
 {
-    public class NodeGUI : Graphs.Node
+    public class NodeGUI : Node
     {
         #region Public class methods
 

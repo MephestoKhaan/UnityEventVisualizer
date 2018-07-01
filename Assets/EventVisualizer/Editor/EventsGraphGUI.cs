@@ -7,17 +7,18 @@ using UnityEditor.Graphs;
 namespace EventVisualizer.Base
 {
     [System.Serializable]
-    public class EventsGraphGUI : GraphGUI
+	public class EventsGraphGUI : GraphGUI
     {
         [SerializeField]
         public int SelectionOverride;
-        
-        public override void OnGraphGUI()
+		
+		public override void OnGraphGUI()
         {
-            // Show node subwindows.
-            m_Host.BeginWindows();
-
-            foreach (var node in graph.nodes)
+			
+			// Show node subwindows.
+			m_Host.BeginWindows();
+			
+			foreach (var node in graph.nodes)
             {
                 // Recapture the variable for the delegate.
                 var node2 = node;
@@ -40,18 +41,20 @@ namespace EventVisualizer.Base
             { 
                 GUILayout.Window(0, new Rect(0, 0, 1, 1), delegate {}, "", "MiniLabel");
             }
+			
+			m_Host.EndWindows();
 
-            m_Host.EndWindows();
+			// Graph edges
+			edgeGUI.DoEdges();
 
-            // Graph edges
-            edgeGUI.DoEdges();
-
+			
 			// Mouse drag
 #if UNITY_2017 || UNITY_2017_1_OR_NEWER
 			DragSelection();
 #else
 			DragSelection(new Rect(-5000, -5000, 10000, 10000));
 #endif
+			
 		}
         
         public override IEdgeGUI edgeGUI
