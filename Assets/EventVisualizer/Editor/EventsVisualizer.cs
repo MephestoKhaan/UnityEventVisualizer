@@ -86,7 +86,7 @@ namespace EventVisualizer.Base
             return calls;
         }
 
-        public static List<GameObject> GetAllObjectsInScene(bool rootOnly = false)
+        public static List<GameObject> GetAllObjectsInScene()
         {
             GameObject[] pAllObjects = (GameObject[])Resources.FindObjectsOfTypeAll(typeof(GameObject));
 
@@ -94,11 +94,6 @@ namespace EventVisualizer.Base
 
             foreach (GameObject pObject in pAllObjects)
             {
-                if (rootOnly
-                    && pObject.transform.parent != null)
-                {
-                    continue;
-                }
 
                 if (pObject.hideFlags == HideFlags.NotEditable
                     || pObject.hideFlags == HideFlags.HideAndDontSave)

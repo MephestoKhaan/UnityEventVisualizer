@@ -8,6 +8,7 @@ public class CustomEventTest : MonoBehaviour
     public UnityEvent simpleEvent;
     public CustomComplexEvent complexEvent;
 
+	public ScriptableObjectEventTest soTest;
 
     public void TriggerSimpleEvent()
     {
