@@ -59,7 +59,7 @@ namespace EventVisualizer.Base
 					if (edge == _moveEdge) continue;
 
 					Vector2Int indexes = FindSlotIndexes(edge);
-					DrawEdge(edge, indexes, ColorForIndex(indexes.x, indexes.y));
+					DrawEdge(edge, indexes, ColorForIndex(indexes.x, 2*indexes.x));
 				}
 			}
 		}
