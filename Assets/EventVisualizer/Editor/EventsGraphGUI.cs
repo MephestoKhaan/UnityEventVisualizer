@@ -46,10 +46,13 @@ namespace EventVisualizer.Base
             // Graph edges
             edgeGUI.DoEdges();
 
-            // Mouse drag
-            DragSelection(new Rect(-5000, -5000, 10000, 10000));
-            
-        }
+			// Mouse drag
+#if UNITY_2017 || UNITY_2017_1_OR_NEWER
+			DragSelection();
+#else
+			DragSelection(new Rect(-5000, -5000, 10000, 10000));
+#endif
+		}
         
         public override IEdgeGUI edgeGUI
         {
