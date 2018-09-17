@@ -148,9 +148,7 @@ namespace EventVisualizer.Base
 
 		#region Edge drawer
 
-		const float kEdgeWidth = 4;
-		const float kNodeTitleSpace = 35;
-		const float kNodeEdgeSeparation = 11;
+		const float kEdgeWidth = 6;
 
 		static void DrawEdge(Edge edge, Vector2Int indexes, Color color)
 		{
@@ -167,14 +165,14 @@ namespace EventVisualizer.Base
 			var l = Mathf.Min(Mathf.Abs(p1.y - p2.y), 50);
 			Vector2 p3 = p1 + new Vector2(l, 0);
 			Vector2 p4 = p2 - new Vector2(l, 0);
-			var texture = (Texture2D)Graphs.Styles.connectionTexture.image;
+			var texture = (Texture2D)Graphs.Styles.selectedConnectionTexture.image;
 			Handles.DrawBezier(p1, p2, p3, p4, color, texture, kEdgeWidth);
 
 
 			foreach (var trigger in triggers)
 			{
 				Vector3 pos = CalculateBezierPoint(trigger, p1, p3, p4, p2);
-				Handles.DrawSolidArc(pos, Vector3.back, pos + Vector3.up, 360, kEdgeWidth * 2);
+				Handles.DrawSolidArc(pos, Vector3.back, pos + Vector3.up, 360, kEdgeWidth );
 
 			}
 
@@ -185,12 +183,18 @@ namespace EventVisualizer.Base
 
 		#region Utilities to access private members
 
+		const float kEdgeBottomMargin = 4;
+		const float kNodeTitleSpace = 36;
+		const float kNodeEdgeSeparation = 12;
+
 		static Vector2 GetPositionAsFromSlot(Slot slot, int index)
 		{
 			NodeGUI node = slot.node as NodeGUI;
 			Vector2 pos = node.position.position;
-			pos.y = node.position.yMax - kNodeEdgeSeparation * 0.5f;
+			
+			pos.y = node.position.yMax - kEdgeBottomMargin;
 			pos.y -= kNodeEdgeSeparation * index;
+
 			pos.x = node.position.xMax;
 
 			return pos;
@@ -207,15 +211,6 @@ namespace EventVisualizer.Base
 			return pos;
 		}
 		
-
-		// Caller for GUIClip.Clip
-		static Vector2 GUIClip(Vector2 pos)
-		{
-			var type = Type.GetType("UnityEngine.GUIClip,UnityEngine");
-			var method = type.GetMethod("Clip", new Type[] { typeof(Vector2) });
-			return ((Vector2)method.Invoke(null, new object[] { pos }));
-		}
-
 		#endregion
 
 		private static Vector3 CalculateBezierPoint(float t, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)

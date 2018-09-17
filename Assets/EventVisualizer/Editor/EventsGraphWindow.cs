@@ -30,7 +30,7 @@ namespace EventVisualizer.Base
 		public void Initialize()
 		{
 			_graph = EventsGraph.Create();
-			_graph.BuildGraph();
+			_graph.RebuildGraph();
 
 			_graphGUI = _graph.GetEditor();
 			_graphGUI.CenterGraph();
@@ -43,7 +43,7 @@ namespace EventVisualizer.Base
 		{
 			var width = position.width;
 			var height = position.height;
-			_zoomArea = new Rect(0, 0, width, height - kBarHeight);
+			_zoomArea = new Rect(0, 0, width, height);
 			HandleEvents();
 
 			if (_graphGUI != null)
@@ -65,10 +65,16 @@ namespace EventVisualizer.Base
 
 
 			// Status bar
-			GUILayout.BeginArea(new Rect(0, height - kBarHeight, width, kBarHeight));
-			if (GUILayout.Button("Refresh"))
+			GUILayout.BeginArea(new Rect(0, 0, width, kBarHeight+5));
+			string[] toolbarStrings = new string[] { "Update connections", "Clear" };
+			int result = GUILayout.Toolbar(-1, toolbarStrings);
+			if (result == 0)
 			{
-				Refresh();
+				RefreshGraphConnections();
+			}
+			else if(result == 1)
+			{
+				RebuildGraph();
 			}
 			GUILayout.EndArea();
 
@@ -110,10 +116,19 @@ namespace EventVisualizer.Base
 			}
 		}
 
-		void Refresh()
+		void RebuildGraph()
 		{
-			_graph.Clear();
-			_graph.BuildGraph();
+			if(_graph != null)
+			{
+				_graph.RebuildGraph();
+			}
+		}
+		void RefreshGraphConnections()
+		{
+			if (_graph != null)
+			{
+				_graph.RefreshGraphConnections();
+			}
 		}
 	}
 }

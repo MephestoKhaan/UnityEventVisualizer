@@ -1,9 +1,5 @@
 ﻿using UnityEngine;
-using UnityEngine.Events;
 using UnityEditor;
-using System;
-using System.Reflection;
-using Graphs = UnityEditor.Graphs;
 using System.Linq;
 using UnityEditor.Graphs;
 using System.Collections.Generic;
@@ -17,23 +13,21 @@ namespace EventVisualizer.Base
         // Factory method
         static public NodeGUI Create(NodeData dataInstance)
         {
-            var node = CreateInstance<NodeGUI>();
+			bool isGameObject = dataInstance.Entity is GameObject;
+
+			var node = CreateInstance<NodeGUI>();
             node.Initialize(dataInstance);
             node.name = dataInstance.Entity.GetInstanceID().ToString();
-            return node;
+			node.icon = (Texture2D)EditorGUIUtility.IconContent(isGameObject?"Gameobject Icon" : "ScriptableObject Icon").image;
+			return node;
         }
 
-        #endregion
+		#endregion
 
-        #region Public member properties and methods
+		#region Public member properties and methods
 
-        // Runtime instance access
-        public NodeData runtimeInstance
-        {
-            get { return _runtimeInstance; }
-        }
-
-        // Validity check
+		private Texture2D icon;
+		
         public bool isValid
         {
             get { return _runtimeInstance != null; }
@@ -42,39 +36,40 @@ namespace EventVisualizer.Base
         #endregion
 
         #region Overridden virtual methods
-
-        // Node display title
+		
         public override string title
         {
             get { return isValid ? _runtimeInstance.Name : "<Missing>"; }
         }
 
-        // Dirty callback
-        public override void Dirty()
-        {
-            base.Dirty();
-        }
 
-        #endregion
+		public override void NodeUI(GraphGUI host)
+		{
+			base.NodeUI(host);
+			if (icon != null)
+			{
+				GUI.DrawTexture(new Rect(Vector2.one * 5, new Vector2(20, 20)), icon);
+			}
+		}
 
-        #region Private members
+		#endregion
 
-        // Runtime instance of this node
-        NodeData _runtimeInstance;
+		#region Private members
 
-        // Initializer (called from the Create method)
-        void Initialize(NodeData runtimeInstance)
+		NodeData _runtimeInstance;
+		
+		void Initialize(NodeData runtimeInstance)
         {
             hideFlags = HideFlags.DontSave;
-
-            // Object references
+			
             _runtimeInstance = runtimeInstance;
             position = new Rect(Vector2.one * UnityEngine.Random.Range(0, 500), Vector2.zero);
 
             PopulateSlots();
         }
 
-        void PopulateSlots()
+
+		void PopulateSlots()
         {
             foreach (EventCall call in _runtimeInstance.Outputs)
             {
@@ -109,13 +104,16 @@ namespace EventVisualizer.Base
                 {
                     var targetNode = graph[call.Receiver.GetInstanceID().ToString()];
                     var inSlot = targetNode[call.MethodFullPath];
+					
+					if (graph.Connected(outSlot, inSlot))
+					{
+						Edge existingEdge = graph.edges.Find(e => e.fromSlot == outSlot && e.toSlot == inSlot);
+						graph.RemoveEdge(existingEdge);
+					}
 
-                    if (!graph.Connected(outSlot, inSlot))
-                    {
-                        Edge edge = graph.Connect(outSlot, inSlot);
-                        call.OnTriggered += (() => EdgeTriggersTracker.RegisterTrigger(edge));
-                    }
-                }
+					Edge edge = graph.Connect(outSlot, inSlot);
+					call.OnTriggered += (() => EdgeTriggersTracker.RegisterTrigger(edge));
+				}
             }
         }
 

@@ -20,7 +20,7 @@ namespace EventVisualizer.Base
         public List<EventCall> Inputs { get; private set; }
 
         [SerializeField]
-        private static Dictionary<Object, NodeData> nodes = new Dictionary<Object, NodeData>();
+        private static Dictionary<int, NodeData> nodes = new Dictionary<int, NodeData>();
 
         public static ICollection<NodeData> Nodes
         {
@@ -32,27 +32,39 @@ namespace EventVisualizer.Base
         
 
 
-        public static void Clear() 
+        public static void ClearAll() 
         {
             nodes.Clear();
         }
+
+		public static void ClearSlots()
+		{
+			foreach(var node in nodes.Keys)
+			{
+				nodes[node].Outputs.Clear();
+				nodes[node].Inputs.Clear();
+			}
+		}
         
         public static void RegisterEvent(EventCall eventCall)
         {
             CreateNode(eventCall.Sender);
             CreateNode(eventCall.Receiver);
 
-            nodes[eventCall.Sender].Outputs.Add(eventCall);
-            nodes[eventCall.Receiver].Inputs.Add(eventCall);
+			nodes[eventCall.Sender.GetInstanceID()].Outputs.Add(eventCall);
+            nodes[eventCall.Receiver.GetInstanceID()].Inputs.Add(eventCall);
         }
+
+
 
         private static void CreateNode(Object entity)
         {
-            if(!nodes.ContainsKey(entity))
-            {
-                nodes.Add(entity, new NodeData(entity));
-            }
+			int id = entity.GetInstanceID();
 
+			if (!nodes.ContainsKey(id))
+            {
+                nodes.Add(id, new NodeData(entity));
+            }
         }
         
         public NodeData(Object entity)
