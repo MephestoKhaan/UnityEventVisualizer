@@ -28,7 +28,7 @@ namespace EventVisualizer.Base
 		public void RebuildGraph()
 		{
 			BuildGraph();
-			SortGraph(nodes);
+			SortGraph(nodes,false);
 		}
 
 		public void RefreshGraphConnections()
@@ -52,7 +52,7 @@ namespace EventVisualizer.Base
 					adriftNodes.Add(node);
 				}
 			}
-			SortGraph(adriftNodes);
+			SortGraph(adriftNodes,true);
 		}
 
 		private void BuildGraph()
@@ -84,7 +84,7 @@ namespace EventVisualizer.Base
 		private HashSet<Node> positionedNodes = new HashSet<Node>();
 		private const float VERTICAL_SPACING = 80f;
 		private const float HORIZONTAL_SPACING = 400f;
-		private void SortGraph(List<Node> nodes)
+		private void SortGraph(List<Node> nodes, bool skipParents)
 		{
 			positionedNodes.Clear();
 
@@ -102,24 +102,27 @@ namespace EventVisualizer.Base
 				if (!positionedNodes.Contains(node))
 				{
 					positionedNodes.Add(node);
-					position.y += PositionNodeHierarchy(node, position);
+					position.y += PositionNodeHierarchy(node, position, skipParents);
 				}
 			}
 		}
 
 
-		private float PositionNodeHierarchy(Node currentNode, Vector2 masterPosition)
+		private float PositionNodeHierarchy(Node currentNode, Vector2 masterPosition, bool skipParents)
 		{
 			float height = VERTICAL_SPACING;
-			foreach (var outputEdge in currentNode.outputEdges)
+			if (!skipParents)
 			{
-				Node node = outputEdge.toSlot.node;
-				if (!positionedNodes.Contains(node))
+				foreach (var outputEdge in currentNode.outputEdges)
 				{
-					positionedNodes.Add(node);
-					height += PositionNodeHierarchy(node, masterPosition
-						+ Vector2.right * HORIZONTAL_SPACING
-						+ Vector2.up * height);
+					Node node = outputEdge.toSlot.node;
+					if (!positionedNodes.Contains(node))
+					{
+						positionedNodes.Add(node);
+						height += PositionNodeHierarchy(node, masterPosition
+							+ Vector2.right * HORIZONTAL_SPACING
+							+ Vector2.up * height, skipParents);
+					}
 				}
 			}
 			currentNode.position = new Rect(masterPosition + Vector2.up * height * 0.5f, currentNode.position.size);
