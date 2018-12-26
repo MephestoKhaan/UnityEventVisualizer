@@ -19,6 +19,7 @@ namespace EventVisualizer.Base
         public NodeData nodeReceiver;
         public double lastTimeExecuted { get; private set; }
         public int timesExecuted { get; private set; }
+		public readonly Color color;
 
         public string MethodFullPath
         {
@@ -38,6 +39,7 @@ namespace EventVisualizer.Base
             Receiver = receiver as Component ? (receiver as Component).gameObject : receiver;
             EventName = eventName;
             Method = methodName;
+			color = EdgeGUI.ColorForIndex(Animator.StringToHash(eventName));
 
             UpdateReceiverComponentName(receiver);
             AttachTrigger(unityEvent);

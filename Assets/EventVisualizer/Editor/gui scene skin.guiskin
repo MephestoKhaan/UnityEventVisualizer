@@ -58,17 +58,17 @@ MonoBehaviour:
       m_Top: 0
       m_Bottom: 0
     m_Padding:
-      m_Left: 10
-      m_Right: 10
-      m_Top: 3
-      m_Bottom: 3
+      m_Left: 5
+      m_Right: 5
+      m_Top: 2
+      m_Bottom: 2
     m_Overflow:
       m_Left: 0
       m_Right: 0
       m_Top: 0
       m_Bottom: 0
     m_Font: {fileID: 0}
-    m_FontSize: 11
+    m_FontSize: 10
     m_FontStyle: 0
     m_Alignment: 0
     m_WordWrap: 0

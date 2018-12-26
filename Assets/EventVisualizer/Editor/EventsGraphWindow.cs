@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
 
@@ -28,8 +30,12 @@ namespace EventVisualizer.Base
 			editor.Initialize();
 		}
 
+
+		private bool initialized = false;
 		public void Initialize()
 		{
+			if (initialized) return;
+			initialized = true;
 			_graph = EventsGraph.Create();
 			_graph.RebuildGraph();
 
@@ -44,6 +50,8 @@ namespace EventVisualizer.Base
 
 		void OnGUI()
 		{
+			Initialize();
+
 			var width = position.width;
 			var height = position.height;
 			_zoomArea = new Rect(0, 0, width, height);
@@ -148,114 +156,187 @@ namespace EventVisualizer.Base
 			SceneView.onSceneGUIDelegate -= OnSceneGUI;
 		}
 
+		private struct Bezier {
+			public enum Tangent { Auto, Positive, Negative, PositiveUnscaled, NegativeUnscaled }
+			public Vector2 start;
+			public Vector2 end;
+			public Tangent startTangent, endTangent;
+		}
+
 		void OnSceneGUI(SceneView sceneView) {
 			Handles.BeginGUI();
 			GUI.skin = guiSkin;
+
+			Dictionary<EventCall, Bezier> beziersToDraw = new Dictionary<EventCall, Bezier>();
+			
 			foreach (var elem in NodeData.Nodes) {
-				GameObject sender = elem.Entity as GameObject;
-				if (null != sender) {
-					bool isSenderSelected = Selection.Contains(sender.gameObject);
-					var start2D = HandleUtility.WorldToGUIPoint(sender.transform.position);
-					for (int i = 0; i < elem.Outputs.Count; i++) {
-						var output = elem.Outputs[i];
-						GameObject receiver = output.Receiver as GameObject;
-						if (null != receiver) {
-							//Gizmos.DrawIcon(endGo.transform.position, PngSender, true);
-							bool isReceiverSelected = Selection.Contains(receiver.gameObject);
-							bool isSelected = isSenderSelected || isReceiverSelected;
+				GameObject entity = elem.Entity as GameObject;
+				if (null != entity) {
+					bool isEntitySelected = Selection.Contains(entity.gameObject);
+					var senderPos2D = HandleUtility.WorldToGUIPoint(entity.transform.position);
 
-							if (isSelected || output.lastTimeExecuted + timeFading >= EditorApplication.timeSinceStartup - output.lastTimeExecuted) {
-								var end = receiver.transform.position;
-								var end2D = HandleUtility.WorldToGUIPoint(end);
-
-								var localStart2D = start2D + new Vector2(0, separation * i);
-								var localEnd2D = end2D + new Vector2(0, separation * output.nodeSender.Inputs.IndexOf(output));
-
-								Vector2 diff = (localEnd2D - localStart2D);
-								diff.y = 0;
-								diff.x = Mathf.Sign(diff.x) * Mathf.Min(Mathf.Abs(diff.x), 50);
-
-								Color color = EdgeGUI.ColorForIndex(Animator.StringToHash(output.EventName));
-
-								if (!isSelected) color.a *= Mathf.Clamp01(1f - (float) (EditorApplication.timeSinceStartup - output.lastTimeExecuted) / timeFading);
-
-								var p1 = localStart2D;
-								var p2 = localEnd2D;
-								var p3 = localStart2D + diff;
-								var p4 = localEnd2D - diff;
-
-								Color prevColor = Handles.color;
-								Handles.color = color;
-								Handles.DrawBezier(p1, p2, p3, p4, color, (Texture2D) UnityEditor.Graphs.Styles.selectedConnectionTexture.image, EdgeGUI.kEdgeWidth);
-								foreach (var trigger in EdgeTriggersTracker.GetTimings(output)) {
-									Vector3 pos = EdgeGUI.CalculateBezierPoint(trigger, p1, p3, p4, p2);
-									Handles.DrawSolidArc(pos, Vector3.back, pos + Vector3.up, 360, EdgeGUI.kEdgeWidth);
-								}
-								Handles.color = prevColor;
-							}
-						}
-					}
-
-
-
-
-
-
-
-
-
-					if (isSenderSelected) {
-						var boxPos = start2D;
+					if (isEntitySelected) {
 						StringBuilder sb = new StringBuilder();
 						for (int i = 0; i < elem.Inputs.Count; i++) {
 							var ev = elem.Inputs[i];
 							GameObject receiver = ev.Receiver as GameObject;
-							if (null != receiver) {
-								Color color = EdgeGUI.ColorForIndex(Animator.StringToHash(ev.EventName));
-								AddEventText(sb, true, ev);
-								DrawEventBox(ref boxPos, sb, color);
+							GameObject sender = ev.Sender as GameObject;
+
+							if (null != receiver && receiver != ev.Sender) {
+								AddEventText(sb, "➜● | ", ev);
+								var rect = DrawEventBox(ref senderPos2D, new GUIContent(sb.ToString(), "IN"), ev.color);
 								sb.Length = 0;
+								
+								Bezier b;
+								beziersToDraw.TryGetValue(ev, out b);
+								b.endTangent = Bezier.Tangent.Negative;
+								b.end = new Vector2(rect.x, rect.y + rect.height * 0.5f);
+								beziersToDraw[ev] = b;
+							}
+						}
+						for (int i = 0; i < elem.Inputs.Count; i++) {
+							var ev = elem.Inputs[i];
+							GameObject receiver = ev.Receiver as GameObject;
+							if (receiver == ev.Sender) {
+								AddEventText(sb, "● | ", ev);
+								var rect = DrawEventBox(ref senderPos2D, new GUIContent(sb.ToString(), "IN-OUT"), ev.color);
+								sb.Length = 0;
+
+								Bezier b;
+								beziersToDraw.TryGetValue(ev, out b);
+								b.endTangent = Bezier.Tangent.NegativeUnscaled;
+								b.startTangent = Bezier.Tangent.NegativeUnscaled;
+								b.start = new Vector2(rect.x, rect.y + rect.height * 0.25f);
+								b.end = new Vector2(rect.x, rect.y + rect.height * 0.75f);
+								beziersToDraw[ev] = b;
 							}
 						}
 						for (int i = 0; i < elem.Outputs.Count; i++) {
 							var ev = elem.Outputs[i];
 							GameObject receiver = ev.Receiver as GameObject;
-							if (null != receiver) {
-								Color color = EdgeGUI.ColorForIndex(Animator.StringToHash(ev.EventName));
-								AddEventText(sb, false, ev);
-								DrawEventBox(ref boxPos, sb, color);
+							if (null != receiver && receiver != ev.Sender) {
+								AddEventText(sb, "●➜ | ", ev);
+								var rect = DrawEventBox(ref senderPos2D, new GUIContent(sb.ToString(), "OUT"), ev.color);
 								sb.Length = 0;
+
+								Bezier b;
+								beziersToDraw.TryGetValue(ev, out b);
+								b.startTangent = Bezier.Tangent.Positive;
+								b.start = new Vector2(rect.x + rect.width, rect.y + rect.height * 0.5f);
+								beziersToDraw[ev] = b;
 							}
 						}
 					}
+					else {
+						for (int i = 0; i < elem.Inputs.Count; i++) {
+							var ev = elem.Inputs[i];
+							GameObject sender = ev.Sender as GameObject;
+							if (null != sender) {
+								bool isSenderSelected = Selection.Contains(sender.gameObject);
+
+								if (isSenderSelected || ev.lastTimeExecuted + EdgeTriggersTracker.TimeToLive >= EditorApplication.timeSinceStartup) {
+									var localEnd2D = senderPos2D + new Vector2(0, separation * ev.nodeSender.Inputs.IndexOf(ev));
+									
+									Bezier b;
+									beziersToDraw.TryGetValue(ev, out b);
+									b.endTangent = Bezier.Tangent.Auto;
+									b.end = localEnd2D;
+									beziersToDraw[ev] = b;
+								}
+							}
+						}
+						
+						for (int i = 0; i < elem.Outputs.Count; i++) {
+							var ev = elem.Outputs[i];
+							GameObject receiver = ev.Receiver as GameObject;
+							if (null != receiver) {
+								bool isReceiverSelected = Selection.Contains(receiver.gameObject);
+
+								if (isReceiverSelected || ev.lastTimeExecuted + EdgeTriggersTracker.TimeToLive >= EditorApplication.timeSinceStartup) {
+									var localStart2D = senderPos2D + new Vector2(0, separation * i);
+									
+									Bezier b;
+									beziersToDraw.TryGetValue(ev, out b);
+									b.startTangent = Bezier.Tangent.Auto;
+									b.start = localStart2D;
+									beziersToDraw[ev] = b;
+								}
+							}
+						}
+
+					}
 				}
 			}
+
+			foreach (var elem in beziersToDraw) {
+				DrawConnection(elem.Key, elem.Value);
+			}
+
 			Handles.EndGUI();
 		}
 
-		private static void DrawEventBox(ref Vector2 boxPos, StringBuilder sb, Color color) {
+		private static Rect DrawEventBox(ref Vector2 boxPos, GUIContent content, Color color) {
 			var originalContentColor = GUI.contentColor;
 			var originalBackgroundColor = GUI.backgroundColor;
 
 			GUI.backgroundColor = color;
 			GUI.contentColor = Brightness(color) < 0.5f ? Color.white : Color.black;
 
-			var content = new GUIContent(sb.ToString());
 			var size = GUI.skin.box.CalcSize(content);
-			GUI.Box(new Rect(boxPos, size), content);
+			var rect = new Rect(boxPos, size);
+			GUI.Box(rect, content);
 
 			GUI.contentColor = originalContentColor;
 			GUI.backgroundColor = originalBackgroundColor;
 
 			boxPos.y += size.y;
+
+			return rect;
 		}
 
 		private static float Brightness(Color color) {
 			return 0.2126f * color.r + 0.7152f * color.g + 0.0722f * color.b;
 		}
 
-		private static void AddEventText(StringBuilder sb, bool isIn, EventCall ev) {
-			sb.Append(isIn ? "[IN] " : "[OUT] ").Append("(").Append(ev.timesExecuted).Append(") ").Append(ev.EventName).Append(" => ").Append(ev.ReceiverComponentName).Append("/").Append(ev.Method);
+		private static void AddEventText(StringBuilder sb, string type, EventCall ev) {
+			sb.Append(type).Append("(").Append(ev.timesExecuted).Append(") ").Append(ev.EventName).Append("  ▶  ").Append(ev.ReceiverComponentName).Append("/").Append(ev.Method);
+		}
+
+		private static void DrawConnection(EventCall ev, Bezier b) {
+			Vector2 start = b.start;
+			Vector2 end = b.end;
+
+			const float tangentSize = 50;
+
+			float diff = (end.x - start.x);
+			diff = Mathf.Sign(diff) * Mathf.Min(Mathf.Abs(diff), tangentSize);
+
+			var p1 = start;
+			var p2 = end;
+			var p3 = p1;
+			var p4 = p2;
+
+			if (b.startTangent == Bezier.Tangent.Auto) p3 += new Vector2(diff, 0);
+			else if (b.startTangent == Bezier.Tangent.Negative) p3 -= new Vector2(Math.Abs(diff), 0);
+			else if (b.startTangent == Bezier.Tangent.Positive) p3 += new Vector2(Math.Abs(diff), 0);
+			else if (b.startTangent == Bezier.Tangent.NegativeUnscaled) p3 -= new Vector2(tangentSize, 0);
+			else if (b.startTangent == Bezier.Tangent.PositiveUnscaled) p3 += new Vector2(tangentSize, 0);
+
+			if (b.endTangent == Bezier.Tangent.Auto) p4 -= new Vector2(diff, 0);
+			else if (b.endTangent == Bezier.Tangent.Negative) p4 -= new Vector2(Math.Abs(diff), 0);
+			else if (b.endTangent == Bezier.Tangent.Positive) p4 += new Vector2(Math.Abs(diff), 0);
+			else if (b.endTangent == Bezier.Tangent.NegativeUnscaled) p4 -= new Vector2(tangentSize, 0);
+			else if (b.endTangent == Bezier.Tangent.PositiveUnscaled) p4 += new Vector2(tangentSize, 0);
+			
+			Color c = ev.color;
+			Color prevColor = Handles.color;
+			Handles.color = c;
+			Handles.DrawBezier(p1, p2, p3, p4, c, (Texture2D) UnityEditor.Graphs.Styles.selectedConnectionTexture.image, EdgeGUI.kEdgeWidth);
+			foreach (var trigger in EdgeTriggersTracker.GetTimings(ev)) {
+				Vector3 pos = EdgeGUI.CalculateBezierPoint(trigger, p1, p3, p4, p2);
+				Handles.DrawSolidArc(pos, Vector3.back, pos + Vector3.up, 360, EdgeGUI.kEdgeWidth);
+			}
+			Handles.color = prevColor;
 		}
 	}
 }
