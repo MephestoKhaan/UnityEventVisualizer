@@ -59,7 +59,7 @@ namespace EventVisualizer.Base
 					if (edge == _moveEdge) continue;
 
 					Vector2Int indexes = FindSlotIndexes(edge);
-					DrawEdge(edge, indexes, ColorForIndex(indexes.x, 2* edge.fromSlotName.Length));
+					DrawEdge(edge, indexes, ColorForIndex(Animator.StringToHash(edge.fromSlotName)));
 				}
 			}
 		}
@@ -98,10 +98,9 @@ namespace EventVisualizer.Base
 			return indexes;
 		}
 
-		private Color ColorForIndex(int index, int hash)
+		public static Color ColorForIndex(int hash)
 		{
-			float hue = Mathf.Repeat(index+hash, 10f)/10f;
-			return Color.HSVToRGB(hue,1f,1f);
+			return Color.HSVToRGB((float) (hash / (double) int.MaxValue),1f,1f);
 		}
 
 		public void DoDraggedEdge()
@@ -148,7 +147,7 @@ namespace EventVisualizer.Base
 
 		#region Edge drawer
 
-		const float kEdgeWidth = 6;
+		public const float kEdgeWidth = 6;
 
 		static void DrawEdge(Edge edge, Vector2Int indexes, Color color)
 		{
@@ -213,7 +212,7 @@ namespace EventVisualizer.Base
 		
 		#endregion
 
-		private static Vector3 CalculateBezierPoint(float t, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
+		public static Vector3 CalculateBezierPoint(float t, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
 		{
 			float u = 1.0f - t;
 			float tt = t * t;

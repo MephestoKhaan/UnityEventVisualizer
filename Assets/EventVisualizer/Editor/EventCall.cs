@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Text.RegularExpressions;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -13,6 +14,11 @@ namespace EventVisualizer.Base
         public string EventName { get; private set; }
         public string Method { get; private set; }
         public string ReceiverComponentName { get; private set; }
+        
+        public NodeData nodeSender;
+        public NodeData nodeReceiver;
+        public double lastTimeExecuted { get; private set; }
+        public int timesExecuted { get; private set; }
 
         public string MethodFullPath
         {
@@ -139,6 +145,7 @@ namespace EventVisualizer.Base
         #region generic callers
         public void TriggerZeroArgs()
         {
+            OnExecuted();
             if (OnTriggered != null)
             {
                 OnTriggered.Invoke();
@@ -147,6 +154,7 @@ namespace EventVisualizer.Base
 
         public void TriggerOneArg<T0>(T0 arg0)
         {
+            OnExecuted();
             if (OnTriggered != null)
             {
                 OnTriggered.Invoke();
@@ -154,6 +162,7 @@ namespace EventVisualizer.Base
         }
         public void TriggerTwoArgs<T0,T1>(T0 arg0, T1 arg1)
         {
+            OnExecuted();
             if (OnTriggered != null)
             {
                 OnTriggered.Invoke();
@@ -161,6 +170,7 @@ namespace EventVisualizer.Base
         }
         public void TriggerThreeArgs<T0,T1,T2>(T0 arg,T1 arg1, T2 arg2)
         {
+            OnExecuted();
             if (OnTriggered != null)
             {
                 OnTriggered.Invoke();
@@ -168,10 +178,16 @@ namespace EventVisualizer.Base
         }
         public void TriggerFourArgs<T0, T1, T2, T3>(T0 arg, T1 arg1, T2 arg2, T3 arg3)
         {
+            OnExecuted();
             if (OnTriggered != null)
             {
                 OnTriggered.Invoke();
             }
+        }
+
+        private void OnExecuted() {
+            timesExecuted++;
+            lastTimeExecuted = EditorApplication.timeSinceStartup;
         }
         #endregion
 

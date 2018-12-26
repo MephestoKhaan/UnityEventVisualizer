@@ -112,7 +112,7 @@ namespace EventVisualizer.Base
 					}
 
 					Edge edge = graph.Connect(outSlot, inSlot);
-					call.OnTriggered += (() => EdgeTriggersTracker.RegisterTrigger(edge));
+					call.OnTriggered += (() => EdgeTriggersTracker.RegisterTrigger(edge, call));
 				}
             }
         }

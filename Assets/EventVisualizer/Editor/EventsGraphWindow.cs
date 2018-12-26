@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using System.Text;
+using UnityEditor;
 using UnityEngine;
 
 namespace EventVisualizer.Base
@@ -39,6 +40,8 @@ namespace EventVisualizer.Base
 			EditorUtility.SetDirty(_graph);
 		}
 
+		private static readonly string[] toolbarStrings = new string[] { "Update connections", "Clear" };
+
 		void OnGUI()
 		{
 			var width = position.width;
@@ -66,7 +69,6 @@ namespace EventVisualizer.Base
 
 			// Status bar
 			GUILayout.BeginArea(new Rect(0, 0, width, kBarHeight+5));
-			string[] toolbarStrings = new string[] { "Update connections", "Clear" };
 			int result = GUILayout.Toolbar(-1, toolbarStrings);
 			if (result == 0)
 			{
@@ -79,6 +81,7 @@ namespace EventVisualizer.Base
 			GUILayout.EndArea();
 
 		}
+		public GUISkin guiSkin;
 
 		private void Update()
 		{
@@ -129,6 +132,130 @@ namespace EventVisualizer.Base
 			{
 				_graph.RefreshGraphConnections();
 			}
+		}
+
+
+
+		void OnFocus() {
+			// Remove delegate listener if it has previously been assigned.
+			SceneView.onSceneGUIDelegate -= OnSceneGUI;
+			// Add (or re-add) the delegate.
+			SceneView.onSceneGUIDelegate += OnSceneGUI;
+		}
+
+		void OnDestroy() {
+			// When the window is destroyed, remove the delegate so that it will no longer do any drawing.
+			SceneView.onSceneGUIDelegate -= OnSceneGUI;
+		}
+
+		void OnSceneGUI(SceneView sceneView) {
+			Handles.BeginGUI();
+			GUI.skin = guiSkin;
+			foreach (var elem in NodeData.Nodes) {
+				GameObject sender = elem.Entity as GameObject;
+				if (null != sender) {
+					bool isSenderSelected = Selection.Contains(sender.gameObject);
+					var start2D = HandleUtility.WorldToGUIPoint(sender.transform.position);
+					for (int i = 0; i < elem.Outputs.Count; i++) {
+						var output = elem.Outputs[i];
+						GameObject receiver = output.Receiver as GameObject;
+						if (null != receiver) {
+							//Gizmos.DrawIcon(endGo.transform.position, PngSender, true);
+							bool isReceiverSelected = Selection.Contains(receiver.gameObject);
+							bool isSelected = isSenderSelected || isReceiverSelected;
+
+							if (isSelected || output.lastTimeExecuted + timeFading >= EditorApplication.timeSinceStartup - output.lastTimeExecuted) {
+								var end = receiver.transform.position;
+								var end2D = HandleUtility.WorldToGUIPoint(end);
+
+								var localStart2D = start2D + new Vector2(0, separation * i);
+								var localEnd2D = end2D + new Vector2(0, separation * output.nodeSender.Inputs.IndexOf(output));
+
+								Vector2 diff = (localEnd2D - localStart2D);
+								diff.y = 0;
+								diff.x = Mathf.Sign(diff.x) * Mathf.Min(Mathf.Abs(diff.x), 50);
+
+								Color color = EdgeGUI.ColorForIndex(Animator.StringToHash(output.EventName));
+
+								if (!isSelected) color.a *= Mathf.Clamp01(1f - (float) (EditorApplication.timeSinceStartup - output.lastTimeExecuted) / timeFading);
+
+								var p1 = localStart2D;
+								var p2 = localEnd2D;
+								var p3 = localStart2D + diff;
+								var p4 = localEnd2D - diff;
+
+								Color prevColor = Handles.color;
+								Handles.color = color;
+								Handles.DrawBezier(p1, p2, p3, p4, color, (Texture2D) UnityEditor.Graphs.Styles.selectedConnectionTexture.image, EdgeGUI.kEdgeWidth);
+								foreach (var trigger in EdgeTriggersTracker.GetTimings(output)) {
+									Vector3 pos = EdgeGUI.CalculateBezierPoint(trigger, p1, p3, p4, p2);
+									Handles.DrawSolidArc(pos, Vector3.back, pos + Vector3.up, 360, EdgeGUI.kEdgeWidth);
+								}
+								Handles.color = prevColor;
+							}
+						}
+					}
+
+
+
+
+
+
+
+
+
+					if (isSenderSelected) {
+						var boxPos = start2D;
+						StringBuilder sb = new StringBuilder();
+						for (int i = 0; i < elem.Inputs.Count; i++) {
+							var ev = elem.Inputs[i];
+							GameObject receiver = ev.Receiver as GameObject;
+							if (null != receiver) {
+								Color color = EdgeGUI.ColorForIndex(Animator.StringToHash(ev.EventName));
+								AddEventText(sb, true, ev);
+								DrawEventBox(ref boxPos, sb, color);
+								sb.Length = 0;
+							}
+						}
+						for (int i = 0; i < elem.Outputs.Count; i++) {
+							var ev = elem.Outputs[i];
+							GameObject receiver = ev.Receiver as GameObject;
+							if (null != receiver) {
+								Color color = EdgeGUI.ColorForIndex(Animator.StringToHash(ev.EventName));
+								AddEventText(sb, false, ev);
+								DrawEventBox(ref boxPos, sb, color);
+								sb.Length = 0;
+							}
+						}
+					}
+				}
+			}
+			Handles.EndGUI();
+		}
+
+		private static void DrawEventBox(ref Vector2 boxPos, StringBuilder sb, Color color) {
+			var originalContentColor = GUI.contentColor;
+			var originalBackgroundColor = GUI.backgroundColor;
+
+			GUI.backgroundColor = color;
+			GUI.contentColor = Brightness(color) < 0.5f ? Color.white : Color.black;
+
+			var content = new GUIContent(sb.ToString());
+			var size = GUI.skin.box.CalcSize(content);
+			GUI.Box(new Rect(boxPos, size), content);
+
+			GUI.contentColor = originalContentColor;
+			GUI.backgroundColor = originalBackgroundColor;
+
+			boxPos.y += size.y;
+		}
+
+		private static float Brightness(Color color) {
+			return 0.2126f * color.r + 0.7152f * color.g + 0.0722f * color.b;
+		}
+
+		private static void AddEventText(StringBuilder sb, bool isIn, EventCall ev) {
+			sb.Append(isIn ? "[IN] " : "[OUT] ").Append("(").Append(ev.timesExecuted).Append(") ").Append(ev.EventName).Append(" => ").Append(ev.ReceiverComponentName).Append("/").Append(ev.Method);
 		}
 	}
 }

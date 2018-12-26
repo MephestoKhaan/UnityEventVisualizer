@@ -1,10 +1,13 @@
 fileFormatVersion: 2
 guid: 190ddcd99b7cc1b48af8d612a8aea744
-timeCreated: 1499938262
-licenseType: Free
 MonoImporter:
+  externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - m_PersistentViewDataDictionary: {instanceID: 0}
+  - _graph: {instanceID: 0}
+  - _graphGUI: {instanceID: 0}
+  - guiSkin: {fileID: 11400000, guid: a50898c5657da2f41ba2982386c0f576, type: 2}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
