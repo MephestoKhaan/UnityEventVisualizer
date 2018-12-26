@@ -88,7 +88,19 @@ namespace EventVisualizer.Base
 			}
 			GUILayout.EndArea();
 
+			GUILayout.BeginArea(new Rect(0, kBarHeight + 5, width, 2000));
+			const float maxWidth = 200;
+			showLabels = EditorGUILayout.Toggle("showLabels", showLabels, GUILayout.MaxWidth(maxWidth));
+			showComponentName = EditorGUILayout.Toggle("showComponentName", showComponentName, GUILayout.MaxWidth(maxWidth));
+			pepe = EditorGUILayout.FloatField("pepe", pepe, GUILayout.MaxWidth(maxWidth));
+			separation = EditorGUILayout.FloatField("separation", separation, GUILayout.MaxWidth(maxWidth));
+			GUILayout.EndArea();
 		}
+
+		public bool showLabels = true;
+		public bool showComponentName = true;
+		public float pepe = 4;
+		public float separation = 3;
 		public GUISkin guiSkin;
 
 		private void Update()
@@ -183,8 +195,8 @@ namespace EventVisualizer.Base
 							GameObject sender = ev.Sender as GameObject;
 
 							if (null != receiver && receiver != ev.Sender) {
-								AddEventText(sb, "➜● | ", ev);
-								var rect = DrawEventBox(ref senderPos2D, new GUIContent(sb.ToString(), "IN"), ev.color);
+								AddEventText(sb, "➜● ", ev);
+								var rect = showLabels ? DrawEventBox(ref senderPos2D, new GUIContent(sb.ToString(), "IN"), ev.color) : SkipEventBox(ref senderPos2D);
 								sb.Length = 0;
 								
 								Bezier b;
@@ -198,8 +210,8 @@ namespace EventVisualizer.Base
 							var ev = elem.Inputs[i];
 							GameObject receiver = ev.Receiver as GameObject;
 							if (receiver == ev.Sender) {
-								AddEventText(sb, "● | ", ev);
-								var rect = DrawEventBox(ref senderPos2D, new GUIContent(sb.ToString(), "IN-OUT"), ev.color);
+								AddEventText(sb, "● ", ev);
+								var rect = showLabels ? DrawEventBox(ref senderPos2D, new GUIContent(sb.ToString(), "IN-OUT"), ev.color) : SkipEventBox(ref senderPos2D);
 								sb.Length = 0;
 
 								Bezier b;
@@ -215,8 +227,8 @@ namespace EventVisualizer.Base
 							var ev = elem.Outputs[i];
 							GameObject receiver = ev.Receiver as GameObject;
 							if (null != receiver && receiver != ev.Sender) {
-								AddEventText(sb, "●➜ | ", ev);
-								var rect = DrawEventBox(ref senderPos2D, new GUIContent(sb.ToString(), "OUT"), ev.color);
+								AddEventText(sb, "●➜ ", ev);
+								var rect = showLabels ? DrawEventBox(ref senderPos2D, new GUIContent(sb.ToString(), "OUT"), ev.color) : SkipEventBox(ref senderPos2D);
 								sb.Length = 0;
 
 								Bezier b;
@@ -289,8 +301,14 @@ namespace EventVisualizer.Base
 			GUI.contentColor = originalContentColor;
 			GUI.backgroundColor = originalBackgroundColor;
 
-			boxPos.y += size.y;
+			boxPos.y += rect.height;
 
+			return rect;
+		}
+
+		private Rect SkipEventBox(ref Vector2 boxPos) {
+			var rect = new Rect(boxPos, new Vector2(0, separation));
+			boxPos.y += rect.height;
 			return rect;
 		}
 
@@ -298,8 +316,10 @@ namespace EventVisualizer.Base
 			return 0.2126f * color.r + 0.7152f * color.g + 0.0722f * color.b;
 		}
 
-		private static void AddEventText(StringBuilder sb, string type, EventCall ev) {
-			sb.Append(type).Append("(").Append(ev.timesExecuted).Append(") ").Append(ev.EventName).Append("  ▶  ").Append(ev.ReceiverComponentName).Append("/").Append(ev.Method);
+		private void AddEventText(StringBuilder sb, string type, EventCall ev) {
+			sb.Append(type).Append("(").Append(ev.timesExecuted).Append(") ").Append(ev.EventName).Append("  ▶  ");
+			if (showComponentName) sb.Append(ev.ReceiverComponentNameSimple).Append(".");
+			sb.Append(ev.Method);
 		}
 
 		private static void DrawConnection(EventCall ev, Bezier b) {

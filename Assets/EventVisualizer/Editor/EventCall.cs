@@ -13,9 +13,10 @@ namespace EventVisualizer.Base
         public Object Receiver { get; private set; }
         public string EventName { get; private set; }
         public string Method { get; private set; }
-        public string ReceiverComponentName { get; private set; }
-        
-        public NodeData nodeSender;
+		public string ReceiverComponentName { get; private set; }
+		public string ReceiverComponentNameSimple { get; private set; }
+
+		public NodeData nodeSender;
         public NodeData nodeReceiver;
         public double lastTimeExecuted { get; private set; }
         public int timesExecuted { get; private set; }
@@ -25,13 +26,13 @@ namespace EventVisualizer.Base
         {
             get
             {
-                return ReceiverComponentName + Method;
+                return ReceiverComponentName + "." + Method;
             }
         }
 
         public System.Action OnTriggered;
 
-        private static Regex parenteshesPattern = new Regex(@"\((.*)\)");
+        private static Regex parenteshesPattern = new Regex(@"\(([^\(]*)\)$");
 
         public EventCall(Object sender, Object receiver, string eventName, string methodName, UnityEventBase unityEvent)
         {
@@ -197,16 +198,15 @@ namespace EventVisualizer.Base
         {
             if (Receiver != null)
             {
+				Debug.Log(component.ToString());
                 MatchCollection matches = parenteshesPattern.Matches(component.ToString());
-                if (matches != null && matches.Count > 0)
+                if (matches != null && matches.Count == 1)
                 {
-                    ReceiverComponentName = matches[matches.Count - 1].Value;
-                    if (ReceiverComponentName.Length > 1)
-                    {
-                        ReceiverComponentName = ReceiverComponentName.Remove(0, 1);
-                    }
-                    ReceiverComponentName = ReceiverComponentName.Replace(")", ".");
-                }
+                    ReceiverComponentName = matches[0].Value;
+                    ReceiverComponentName = ReceiverComponentName.Substring(1, ReceiverComponentName.Length - 2);
+					int lastDot = ReceiverComponentName.LastIndexOf('.') + 1;
+					ReceiverComponentNameSimple = ReceiverComponentName.Substring(lastDot, ReceiverComponentName.Length - lastDot);
+				}
             }
         }
     }
