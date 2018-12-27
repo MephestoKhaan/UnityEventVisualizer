@@ -174,15 +174,23 @@ namespace EventVisualizer.Base
 
 
 		void OnFocus() {
-			// Remove delegate listener if it has previously been assigned.
 			SceneView.onSceneGUIDelegate -= OnSceneGUI;
-			// Add (or re-add) the delegate.
 			SceneView.onSceneGUIDelegate += OnSceneGUI;
+			EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
 		}
 
 		void OnDestroy() {
-			// When the window is destroyed, remove the delegate so that it will no longer do any drawing.
 			SceneView.onSceneGUIDelegate -= OnSceneGUI;
+			EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+		}
+
+		void OnPlayModeStateChanged(PlayModeStateChange mode) {
+			switch (mode) {
+				case PlayModeStateChange.EnteredEditMode:
+				case PlayModeStateChange.EnteredPlayMode:
+					RefreshGraphConnections();
+					break;
+			}
 		}
 
 		private struct Bezier {
@@ -192,7 +200,14 @@ namespace EventVisualizer.Base
 			public Tangent startTangent, endTangent;
 		}
 
+		private struct EventBox {
+			public EventCall ev;
+			public GUIContent content;
+			public Rect rect;
+		}
+
 		private Dictionary<EventCall, Bezier> beziersToDraw = new Dictionary<EventCall, Bezier>();
+		private List<EventBox> boxesToDraw = new List<EventBox>();
 		void OnSceneGUI(SceneView sceneView) {
 			Handles.BeginGUI();
 			GUI.skin = guiSkin;
@@ -211,10 +226,9 @@ namespace EventVisualizer.Base
 							GameObject sender = ev.Sender as GameObject;
 
 							if (null != receiver && receiver != ev.Sender) {
-								AddEventText(sb, "➜● ", ev);
-								var rect = showLabels.Get() ? DrawEventBox(ref senderPos2D, new GUIContent(sb.ToString(), "IN"), ev.color) : SkipEventBox(ref senderPos2D);
+								var rect = showLabels.Get() ? DrawEventBox(sb, "➜● ", boxesToDraw, ref senderPos2D, ev) : SkipEventBox(ref senderPos2D);
 								sb.Length = 0;
-								
+
 								Bezier b;
 								beziersToDraw.TryGetValue(ev, out b);
 								b.endTangent = Bezier.Tangent.Negative;
@@ -226,8 +240,7 @@ namespace EventVisualizer.Base
 							var ev = elem.Inputs[i];
 							GameObject receiver = ev.Receiver as GameObject;
 							if (receiver == ev.Sender) {
-								AddEventText(sb, " ●  ", ev);
-								var rect = showLabels.Get() ? DrawEventBox(ref senderPos2D, new GUIContent(sb.ToString(), "IN-OUT"), ev.color) : SkipEventBox(ref senderPos2D);
+								var rect = showLabels.Get() ? DrawEventBox(sb, " ●  ", boxesToDraw, ref senderPos2D, ev) : SkipEventBox(ref senderPos2D);
 								sb.Length = 0;
 
 								Bezier b;
@@ -243,8 +256,7 @@ namespace EventVisualizer.Base
 							var ev = elem.Outputs[i];
 							GameObject receiver = ev.Receiver as GameObject;
 							if (null != receiver && receiver != ev.Sender) {
-								AddEventText(sb, "●➜ ", ev);
-								var rect = showLabels.Get() ? DrawEventBox(ref senderPos2D, new GUIContent(sb.ToString(), "OUT"), ev.color) : SkipEventBox(ref senderPos2D);
+								var rect = showLabels.Get() ? DrawEventBox(sb, "●➜ ", boxesToDraw, ref senderPos2D, ev) : SkipEventBox(ref senderPos2D);
 								sb.Length = 0;
 
 								Bezier b;
@@ -301,26 +313,49 @@ namespace EventVisualizer.Base
 			}
 			beziersToDraw.Clear();
 
+			foreach (var box in boxesToDraw) {
+				DrawEventBox(box);
+			}
+			boxesToDraw.Clear();
+
 			Handles.EndGUI();
 		}
 
-		private static Rect DrawEventBox(ref Vector2 boxPos, GUIContent content, Color color) {
-			var originalContentColor = GUI.contentColor;
-			var originalBackgroundColor = GUI.backgroundColor;
+		private Rect DrawEventBox(StringBuilder sb, string type, List<EventBox> boxesToDraw, ref Vector2 boxPos, EventCall ev) {
+			sb.Append(type);
+			if (showTimesExecuted.Get()) sb.Append("(").Append(ev.timesExecuted).Append(") ");
+			sb.Append(ev.EventName).Append("  ▶  ");
+			if (showComponentName.Get()) sb.Append(ev.ReceiverComponentNameSimple).Append(".");
+			sb.Append(ev.Method);
 
-			GUI.backgroundColor = color;
-			GUI.contentColor = Brightness(color) < 0.5f ? Color.white : Color.black;
+			GUIContent content = new GUIContent(sb.ToString());
 
 			var size = GUI.skin.box.CalcSize(content);
 			var rect = new Rect(boxPos, size);
-			GUI.Box(rect, content);
+			
+			boxPos.y += rect.height;
+
+			boxesToDraw.Add(new EventBox() {
+				content = content,
+				ev = ev,
+				rect = rect
+			});
+
+			return rect;
+		}
+
+
+		private static void DrawEventBox(EventBox box) {
+			var originalContentColor = GUI.contentColor;
+			var originalBackgroundColor = GUI.backgroundColor;
+
+			GUI.backgroundColor = box.ev.color;
+			GUI.contentColor = Brightness(box.ev.color) < 0.5f ? Color.white : Color.black;
+			
+			GUI.Box(box.rect, box.content);
 
 			GUI.contentColor = originalContentColor;
 			GUI.backgroundColor = originalBackgroundColor;
-
-			boxPos.y += rect.height;
-
-			return rect;
 		}
 
 		private Rect SkipEventBox(ref Vector2 boxPos) {
@@ -332,15 +367,7 @@ namespace EventVisualizer.Base
 		private static float Brightness(Color color) {
 			return 0.2126f * color.r + 0.7152f * color.g + 0.0722f * color.b;
 		}
-
-		private void AddEventText(StringBuilder sb, string type, EventCall ev) {
-			sb.Append(type);
-			if (showTimesExecuted.Get()) sb.Append("(").Append(ev.timesExecuted).Append(") ");
-			sb.Append(ev.EventName).Append("  ▶  ");
-			if (showComponentName.Get()) sb.Append(ev.ReceiverComponentNameSimple).Append(".");
-			sb.Append(ev.Method);
-		}
-
+		
 		private static void DrawConnection(EventCall ev, Bezier b) {
 			Vector2 start = b.start;
 			Vector2 end = b.end;
