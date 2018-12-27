@@ -198,7 +198,6 @@ namespace EventVisualizer.Base
         {
             if (Receiver != null)
             {
-				Debug.Log(component.ToString());
                 MatchCollection matches = parenteshesPattern.Matches(component.ToString());
                 if (matches != null && matches.Count == 1)
                 {

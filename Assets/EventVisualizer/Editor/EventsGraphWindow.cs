@@ -69,8 +69,7 @@ namespace EventVisualizer.Base
 				var e = Event.current;
 				if (e.type == EventType.MouseDown && e.clickCount == 1)
 					_graphGUI.ClearSelection();
-
-
+				
 				EditorZoomArea.End();
 			}
 
@@ -78,30 +77,48 @@ namespace EventVisualizer.Base
 			// Status bar
 			GUILayout.BeginArea(new Rect(0, 0, width, kBarHeight+5));
 			int result = GUILayout.Toolbar(-1, toolbarStrings);
-			if (result == 0)
-			{
-				RefreshGraphConnections();
-			}
-			else if(result == 1)
-			{
-				RebuildGraph();
-			}
+			if (result == 0) RefreshGraphConnections();
+			else if(result == 1) RebuildGraph();
 			GUILayout.EndArea();
 
-			GUILayout.BeginArea(new Rect(0, kBarHeight + 5, width, 2000));
 			const float maxWidth = 200;
-			showLabels = EditorGUILayout.Toggle("showLabels", showLabels, GUILayout.MaxWidth(maxWidth));
-			showComponentName = EditorGUILayout.Toggle("showComponentName", showComponentName, GUILayout.MaxWidth(maxWidth));
-			pepe = EditorGUILayout.FloatField("pepe", pepe, GUILayout.MaxWidth(maxWidth));
-			separation = EditorGUILayout.FloatField("separation", separation, GUILayout.MaxWidth(maxWidth));
+			GUILayout.BeginArea(new Rect(0, kBarHeight + 5, maxWidth, 20 * 3), GUI.skin.box);
+			showLabels.Set(EditorGUILayout.Toggle("showLabels", showLabels.Get(), GUILayout.MaxWidth(maxWidth)));
+			showComponentName.Set(EditorGUILayout.Toggle("showComponentName", showComponentName.Get(), GUILayout.MaxWidth(maxWidth)));
+			showTimesExecuted.Set(EditorGUILayout.Toggle("showTimesExecuted", showTimesExecuted.Get(), GUILayout.MaxWidth(maxWidth)));
 			GUILayout.EndArea();
 		}
 
-		public bool showLabels = true;
-		public bool showComponentName = true;
-		public float pepe = 4;
+		public SavedPrefBool showLabels = new SavedPrefBool("EventVisualizer_showLabels", true);
+		public SavedPrefBool showComponentName = new SavedPrefBool("EventVisualizer_showComponentName", true);
+		public SavedPrefBool showTimesExecuted = new SavedPrefBool("EventVisualizer_showTimesExecuted", true);
 		public float separation = 3;
 		public GUISkin guiSkin;
+
+
+		public class SavedPrefBool {
+			public readonly string name;
+			protected readonly bool defaultValue;
+			protected bool value;
+			private bool ready = false;
+
+			public SavedPrefBool(string name, bool defaultValue) {
+				this.name = name;
+				this.defaultValue = defaultValue;
+			}
+
+			public bool Get() {
+				if (!ready) {
+					ready = true;
+					value = EditorPrefs.GetBool(name, defaultValue);
+				}
+				return value;
+			}
+			public void Set(bool value) {
+				this.value = value;
+				EditorPrefs.SetBool(name, value);
+			}
+		}
 
 		private void Update()
 		{
@@ -175,17 +192,16 @@ namespace EventVisualizer.Base
 			public Tangent startTangent, endTangent;
 		}
 
+		private Dictionary<EventCall, Bezier> beziersToDraw = new Dictionary<EventCall, Bezier>();
 		void OnSceneGUI(SceneView sceneView) {
 			Handles.BeginGUI();
 			GUI.skin = guiSkin;
-
-			Dictionary<EventCall, Bezier> beziersToDraw = new Dictionary<EventCall, Bezier>();
 			
 			foreach (var elem in NodeData.Nodes) {
 				GameObject entity = elem.Entity as GameObject;
 				if (null != entity) {
 					bool isEntitySelected = Selection.Contains(entity.gameObject);
-					var senderPos2D = HandleUtility.WorldToGUIPoint(entity.transform.position);
+					var senderPos2D = WorldToGUIPoint(entity.transform.position);
 
 					if (isEntitySelected) {
 						StringBuilder sb = new StringBuilder();
@@ -196,7 +212,7 @@ namespace EventVisualizer.Base
 
 							if (null != receiver && receiver != ev.Sender) {
 								AddEventText(sb, "➜● ", ev);
-								var rect = showLabels ? DrawEventBox(ref senderPos2D, new GUIContent(sb.ToString(), "IN"), ev.color) : SkipEventBox(ref senderPos2D);
+								var rect = showLabels.Get() ? DrawEventBox(ref senderPos2D, new GUIContent(sb.ToString(), "IN"), ev.color) : SkipEventBox(ref senderPos2D);
 								sb.Length = 0;
 								
 								Bezier b;
@@ -210,8 +226,8 @@ namespace EventVisualizer.Base
 							var ev = elem.Inputs[i];
 							GameObject receiver = ev.Receiver as GameObject;
 							if (receiver == ev.Sender) {
-								AddEventText(sb, "● ", ev);
-								var rect = showLabels ? DrawEventBox(ref senderPos2D, new GUIContent(sb.ToString(), "IN-OUT"), ev.color) : SkipEventBox(ref senderPos2D);
+								AddEventText(sb, " ●  ", ev);
+								var rect = showLabels.Get() ? DrawEventBox(ref senderPos2D, new GUIContent(sb.ToString(), "IN-OUT"), ev.color) : SkipEventBox(ref senderPos2D);
 								sb.Length = 0;
 
 								Bezier b;
@@ -228,7 +244,7 @@ namespace EventVisualizer.Base
 							GameObject receiver = ev.Receiver as GameObject;
 							if (null != receiver && receiver != ev.Sender) {
 								AddEventText(sb, "●➜ ", ev);
-								var rect = showLabels ? DrawEventBox(ref senderPos2D, new GUIContent(sb.ToString(), "OUT"), ev.color) : SkipEventBox(ref senderPos2D);
+								var rect = showLabels.Get() ? DrawEventBox(ref senderPos2D, new GUIContent(sb.ToString(), "OUT"), ev.color) : SkipEventBox(ref senderPos2D);
 								sb.Length = 0;
 
 								Bezier b;
@@ -283,6 +299,7 @@ namespace EventVisualizer.Base
 			foreach (var elem in beziersToDraw) {
 				DrawConnection(elem.Key, elem.Value);
 			}
+			beziersToDraw.Clear();
 
 			Handles.EndGUI();
 		}
@@ -317,8 +334,10 @@ namespace EventVisualizer.Base
 		}
 
 		private void AddEventText(StringBuilder sb, string type, EventCall ev) {
-			sb.Append(type).Append("(").Append(ev.timesExecuted).Append(") ").Append(ev.EventName).Append("  ▶  ");
-			if (showComponentName) sb.Append(ev.ReceiverComponentNameSimple).Append(".");
+			sb.Append(type);
+			if (showTimesExecuted.Get()) sb.Append("(").Append(ev.timesExecuted).Append(") ");
+			sb.Append(ev.EventName).Append("  ▶  ");
+			if (showComponentName.Get()) sb.Append(ev.ReceiverComponentNameSimple).Append(".");
 			sb.Append(ev.Method);
 		}
 
@@ -357,6 +376,46 @@ namespace EventVisualizer.Base
 				Handles.DrawSolidArc(pos, Vector3.back, pos + Vector3.up, 360, EdgeGUI.kEdgeWidth);
 			}
 			Handles.color = prevColor;
+		}
+
+		private static Vector2 WorldToGUIPoint(Vector3 p) {
+			Camera cam = SceneView.currentDrawingSceneView.camera;
+			Vector3 viewPos = cam.WorldToViewportPoint(p);
+			Vector2 viewScreenVector = new Vector2(viewPos.x, viewPos.y);
+
+			Vector2 viewPortTextureSize = Vector2.zero;
+
+			bool outsideScreen =
+				viewPos.z < 0
+				|| viewScreenVector.x > 1 - viewPortTextureSize.x
+				|| viewScreenVector.x < viewPortTextureSize.x
+				|| viewScreenVector.y > 1 - viewPortTextureSize.y
+				|| viewScreenVector.y < viewPortTextureSize.y;
+
+			if (outsideScreen) {
+				// calculate a vector in screen space that goes from the center of the camera to the target and intersect it with the camera's screen borders
+				Vector3 camToTarget = p - cam.transform.position;
+				Vector3 localCamToTarget = Vector3.ProjectOnPlane(camToTarget, cam.transform.forward); // World space vector
+				localCamToTarget = Quaternion.Inverse(cam.transform.rotation) * localCamToTarget; // Local space vector
+				Vector3 view = new Vector3(localCamToTarget.x, localCamToTarget.y, 0); // View space
+				viewScreenVector = new Vector2(view.x / cam.aspect, view.y); // Screen space vector
+
+				// intersect with screen borders [-1, 1] taking into account the size of the lock texture
+				Vector2 absScreenVector = new Vector2(Math.Abs(viewScreenVector.x), Math.Abs(viewScreenVector.y));
+				Vector2 absScreenVectorPlusTexture = absScreenVector / (Vector2.one - viewPortTextureSize * 2);
+				float distToBorder; // Distance to border from (border distance from center in axis) / (longer axis)
+				if (absScreenVectorPlusTexture.x > absScreenVectorPlusTexture.y) {
+					distToBorder = (1 - viewPortTextureSize.x * 2) / absScreenVector.x;
+				}
+				else {
+					distToBorder = (1 - viewPortTextureSize.y * 2) / absScreenVector.y;
+				}
+
+				// [-1, 1] to [0, 1]
+				viewScreenVector = viewScreenVector * (distToBorder * 0.5f) + new Vector2(0.5f, 0.5f);
+			}
+
+			return new Vector2(viewScreenVector.x, 1 - viewScreenVector.y) * new Vector2(cam.pixelWidth, cam.pixelHeight);
 		}
 	}
 }
