@@ -28,3 +28,4 @@ This is a work-in-progress. Pull requests welcome!
 - Original idea by [SoylentGraham](https://github.com/SoylentGraham)
 - Code by [Luca Mefisto](https://github.com/MephestoKhaan) (myself)
 - Inspired by [Keijiro Takahashi](https://github.com/keijiro)
+- SceneView representation by [Andrés Leone](https://github.com/forestrf)
