@@ -43,7 +43,7 @@ namespace EventVisualizer.Base
 			this.eventShortName = eventShortName;
 			this.eventFullName = eventFullName;
 			method = methodName;
-			color = EdgeGUI.ColorForIndex(System.Math.Abs(Animator.StringToHash(this.eventShortName)));
+			color = EdgeGUI.ColorForIndex(this.eventShortName);
 			this.unityEvent = unityEvent;
 
             UpdateReceiverComponentName(receiver);

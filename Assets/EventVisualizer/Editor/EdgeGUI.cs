@@ -59,7 +59,7 @@ namespace EventVisualizer.Base
 					if (edge == _moveEdge) continue;
 
 					Vector2Int indexes = FindSlotIndexes(edge);
-					DrawEdge(edge, indexes, ColorForIndex(Animator.StringToHash(edge.fromSlotName)));
+					DrawEdge(edge, indexes, ColorForIndex(edge.fromSlotName));
 				}
 			}
 		}
@@ -98,8 +98,9 @@ namespace EventVisualizer.Base
 			return indexes;
 		}
 
-		public static Color ColorForIndex(int hash)
+		public static Color ColorForIndex(string name)
 		{
+			int hash = Math.Abs(Animator.StringToHash(name));
 			return Color.HSVToRGB((float) (hash / (double) int.MaxValue), 1f, 1f);
 		}
 
