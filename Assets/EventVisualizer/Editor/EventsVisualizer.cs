@@ -106,6 +106,7 @@ namespace EventVisualizer.Base
 			TmpSearchedTypes.Clear();
 
 			NeedsGraphRefresh = true;
+			Debug.Log("UnityEventVisualizer. Types that use UnityEvents have been updated.");
 		}
 
 		/// <summary>

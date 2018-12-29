@@ -100,7 +100,7 @@ namespace EventVisualizer.Base
 
 		public static Color ColorForIndex(int hash)
 		{
-			return Color.HSVToRGB((float) (hash / (double) int.MaxValue),1f,1f);
+			return Color.HSVToRGB((float) (hash / (double) int.MaxValue), 1f, 1f);
 		}
 
 		public void DoDraggedEdge()
