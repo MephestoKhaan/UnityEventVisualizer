@@ -218,5 +218,9 @@ namespace EventVisualizer.Base
 			var ec = (EventCall) obj;
 			return null != ec && ec.unityEvent == unityEvent && receiver == ec.receiver && method == ec.method;
 		}
+
+		public override int GetHashCode() {
+			return unityEvent == null ? 0 : unityEvent.GetHashCode() ^ (receiver == null ? 0 : receiver.GetHashCode() ^ method.GetHashCode());
+		}
     }
 }

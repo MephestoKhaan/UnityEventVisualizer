@@ -25,7 +25,7 @@ namespace EventVisualizer.Base
 					ExtractEvents(calls, caller);
 				}
 			}
-			Debug.Log("FindAllEvents milliseconds: " + sw.Elapsed.TotalMilliseconds);
+			Debug.Log("UnityEventVisualizer FindAllEvents(). Milliseconds: " + sw.Elapsed.TotalMilliseconds);
 			
 			return calls.ToList();
         }
@@ -94,19 +94,21 @@ namespace EventVisualizer.Base
 
 		[DidReloadScripts, InitializeOnLoadMethod]
 		static void RefreshTypesThatCanHoldUnityEvents() {
+			var sw = System.Diagnostics.Stopwatch.StartNew();
+
 			var objects = AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic)
 				.SelectMany(a => a.GetTypes())
 				.Where(t => typeof(Component).IsAssignableFrom(t));
 
 			foreach (var obj in objects) {
-				if (RecursivelySearchFields<UnityEvent>(obj)) {
+				if (RecursivelySearchFields<UnityEventBase>(obj)) {
 					ComponentsThatCanHaveUnityEvent.Add(obj);
 				}
 			}
 			TmpSearchedTypes.Clear();
 
 			NeedsGraphRefresh = true;
-			Debug.Log("UnityEventVisualizer. Types that use UnityEvents have been updated.");
+			Debug.Log("UnityEventVisualizer Updated Components that can have UnityEvents (" + ComponentsThatCanHaveUnityEvent.Count + "). Milliseconds: " + sw.Elapsed.TotalMilliseconds);
 		}
 
 		/// <summary>
@@ -120,28 +122,30 @@ namespace EventVisualizer.Base
 			if (TmpSearchedTypes.TryGetValue(type, out wanted)) return wanted;
 			TmpSearchedTypes.Add(type, false);
 
-			foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)) {
-				var fType = field.FieldType;
-				if (fType.IsPrimitive) continue;
-
-				if (typeof(T).IsAssignableFrom(fType)
-				|| typeof(List<T>).IsAssignableFrom(fType)
-				|| typeof(T[]).IsAssignableFrom(fType)) {
-					wanted = true;
+			const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+			foreach (var fType in type.GetFields(flags).Where(f => !f.FieldType.IsPrimitive).Select(f => f.FieldType).Concat(type.GetProperties(flags).Select(p => p.PropertyType))) {
+				if (typeof(T).IsAssignableFrom(fType)) {
+					return TmpSearchedTypes[type] |= true;
 				}
-				else if (typeof(UnityEngine.Object).IsAssignableFrom(fType)
-				|| typeof(List<UnityEngine.Object>).IsAssignableFrom(fType)
-				|| typeof(UnityEngine.Object[]).IsAssignableFrom(fType)) {
+				else if (typeof(UnityEngine.Object).IsAssignableFrom(fType)) {
 					continue;
 				}
 				else if (!TmpSearchedTypes.TryGetValue(fType, out wanted)) {
-					wanted = RecursivelySearchFields<T>(fType);
+					if (RecursivelySearchFields<T>(fType)) {
+						return TmpSearchedTypes[type] |= true;
+					}
 				}
-				if (wanted) {
-					TmpSearchedTypes[type] = true;
-					return true;
+				else if (wanted) {
+					return TmpSearchedTypes[type] |= true;
 				}
 			}
+
+			if (type.IsArray) {
+				if (RecursivelySearchFields<T>(type.GetElementType())) {
+					return TmpSearchedTypes[type] |= true;
+				}
+			}
+
 			return false;
 		}
 	}
