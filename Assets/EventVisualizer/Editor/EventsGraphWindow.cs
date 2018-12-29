@@ -196,11 +196,18 @@ namespace EventVisualizer.Base
 
 		void AddCallbacks() {
 			SceneView.onSceneGUIDelegate += OnSceneGUI;
+			Undo.undoRedoPerformed += OnHierarchyChange;
 			EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
 		}
 		void RemoveCallbacks() {
 			SceneView.onSceneGUIDelegate -= OnSceneGUI;
+			Undo.undoRedoPerformed -= OnHierarchyChange;
 			EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+		}
+
+		void OnHierarchyChange() {
+			if (EditorApplication.isPlaying) return;
+			RefreshGraphConnections();
 		}
 
 		void OnPlayModeStateChanged(PlayModeStateChange mode) {
