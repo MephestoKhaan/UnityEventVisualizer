@@ -390,7 +390,9 @@ namespace EventVisualizer.Base
 			GUI.backgroundColor = box.ev.color;
 			GUI.contentColor = Brightness(box.ev.color) < 0.5f ? Color.white : Color.black;
 			
-			GUI.Box(box.rect, box.content);
+			if (GUI.Button(box.rect, box.content)) {
+				Selection.activeObject = box.ev.sender;
+			}
 
 			GUI.contentColor = originalContentColor;
 			GUI.backgroundColor = originalBackgroundColor;
