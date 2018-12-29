@@ -92,8 +92,8 @@ namespace EventVisualizer.Base
 		private static HashSet<Type> ComponentsThatCanHaveUnityEvent = new HashSet<Type>();
 		private static Dictionary<Type, bool> TmpSearchedTypes = new Dictionary<Type, bool>();
 
-		[DidReloadScripts]
-		static void AfterScriptReload() {
+		[DidReloadScripts, InitializeOnLoadMethod]
+		static void RefreshTypesThatCanHoldUnityEvents() {
 			var objects = AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic)
 				.SelectMany(a => a.GetTypes())
 				.Where(t => typeof(Component).IsAssignableFrom(t));
