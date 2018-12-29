@@ -73,7 +73,7 @@ namespace EventVisualizer.Base
         {
             foreach (EventCall call in _runtimeInstance.Outputs)
             {
-                string name = call.EventName;
+                string name = call.eventShortName;
                 string title = ObjectNames.NicifyVariableName(name);
                 if (!outputSlots.Any(s => s.title == title))
                 {
@@ -98,11 +98,11 @@ namespace EventVisualizer.Base
         {
             foreach (var outSlot in outputSlots)
             {
-                List<EventCall> outCalls = _runtimeInstance.Outputs.FindAll(call => call.EventName == outSlot.name);
+                List<EventCall> outCalls = _runtimeInstance.Outputs.FindAll(call => call.eventShortName == outSlot.name);
 
                 foreach (EventCall call in outCalls)
                 {
-                    var targetNode = graph[call.Receiver.GetInstanceID().ToString()];
+                    var targetNode = graph[call.receiver.GetInstanceID().ToString()];
                     var inSlot = targetNode[call.MethodFullPath];
 					
 					if (graph.Connected(outSlot, inSlot))

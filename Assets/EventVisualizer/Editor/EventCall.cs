@@ -9,10 +9,11 @@ namespace EventVisualizer.Base
     [System.Serializable]
     public class EventCall
     {
-        public Object Sender { get; private set; }
-        public Object Receiver { get; private set; }
-        public string EventName { get; private set; }
-        public string Method { get; private set; }
+        public readonly Object sender;
+        public readonly Object receiver;
+		public readonly string eventShortName;
+		public readonly string eventFullName;
+		public readonly string method;
 		public string ReceiverComponentName { get; private set; }
 		public string ReceiverComponentNameSimple { get; private set; }
 
@@ -21,12 +22,13 @@ namespace EventVisualizer.Base
         public double lastTimeExecuted { get; private set; }
         public int timesExecuted { get; private set; }
 		public readonly Color color;
+		public readonly UnityEventBase unityEvent;
 
         public string MethodFullPath
         {
             get
             {
-                return ReceiverComponentName + "." + Method;
+                return ReceiverComponentName + "." + method;
             }
         }
 
@@ -34,13 +36,15 @@ namespace EventVisualizer.Base
 
         private static Regex parenteshesPattern = new Regex(@"\(([^\(]*)\)$");
 
-        public EventCall(Object sender, Object receiver, string eventName, string methodName, UnityEventBase unityEvent)
+        public EventCall(Object sender, Object receiver, string eventShortName, string eventFullName, string methodName, UnityEventBase unityEvent)
         {
-            Sender = sender as Component ? (sender as Component).gameObject : sender;
-            Receiver = receiver as Component ? (receiver as Component).gameObject : receiver;
-            EventName = eventName;
-            Method = methodName;
-			color = EdgeGUI.ColorForIndex(Animator.StringToHash(eventName));
+            this.sender = sender as Component ? (sender as Component).gameObject : sender;
+            this.receiver = receiver as Component ? (receiver as Component).gameObject : receiver;
+			this.eventShortName = eventShortName;
+			this.eventFullName = eventFullName;
+			method = methodName;
+			color = EdgeGUI.ColorForIndex(Animator.StringToHash(this.eventShortName));
+			this.unityEvent = unityEvent;
 
             UpdateReceiverComponentName(receiver);
             AttachTrigger(unityEvent);
@@ -196,7 +200,7 @@ namespace EventVisualizer.Base
 
         private void UpdateReceiverComponentName(Object component)
         {
-            if (Receiver != null)
+            if (receiver != null)
             {
                 MatchCollection matches = parenteshesPattern.Matches(component.ToString());
                 if (matches != null && matches.Count == 1)
@@ -208,5 +212,11 @@ namespace EventVisualizer.Base
 				}
             }
         }
+
+
+		public override bool Equals(object obj) {
+			var ec = (EventCall) obj;
+			return null != ec && ec.unityEvent == unityEvent && receiver == ec.receiver && method == ec.method;
+		}
     }
 }

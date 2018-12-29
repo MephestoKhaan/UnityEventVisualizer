@@ -4,6 +4,10 @@ using UnityEditor;
 using UnityEngine.EventSystems;
 using System.Reflection;
 using UnityEngine.Events;
+using System;
+using UnityEditor.Callbacks;
+using System.Linq;
+using com.spacepuppyeditor;
 
 namespace EventVisualizer.Base
 {
@@ -12,139 +16,135 @@ namespace EventVisualizer.Base
     {
         public static List<EventCall> FindAllEvents()
         {
-            List<EventCall> calls = new List<EventCall>();
-
-            foreach (GameObject go in GetAllObjectsInScene())
-            {
-                foreach (Component caller in go.GetComponents<Component>())
-                {
-                    if (caller == null)
-                    {
-                        continue;
-                    }
-                    calls.AddRange(ExtractEvents(caller));
-                    calls.AddRange(ExtractDefaultEventTriggers(caller));
-                }
-            }
-            return calls;
+            HashSet<EventCall> calls = new HashSet<EventCall>();
+			
+			var sw = System.Diagnostics.Stopwatch.StartNew();
+			foreach (var type in ComponentsThatCanHaveUnityEvent) {
+				foreach (Component caller in GameObject.FindObjectsOfType(type)) {
+					ExtractDefaultEventTriggers(calls, caller);
+					ExtractEvents(calls, caller);
+				}
+			}
+			Debug.Log("FindAllEvents milliseconds: " + sw.Elapsed.TotalMilliseconds);
+			
+			return calls.ToList();
         }
         
-        private static List<EventCall> ExtractEvents(Component caller)
+        private static void ExtractEvents(HashSet<EventCall> calls, Component caller)
         {
             SerializedProperty iterator = new SerializedObject(caller).GetIterator();
             iterator.Next(true);
-
-            List<EventCall> calls = new List<EventCall>();
-
-            do
-            {
-                SerializedProperty persistentCalls = iterator.FindPropertyRelative("m_PersistentCalls.m_Calls");
-                if (persistentCalls != null)
-                {
-                    UnityEventBase unityEvent = FindEvent(caller, iterator);
-                    for (int i = 0; i < persistentCalls.arraySize; ++i)
-                    {
-                        SerializedProperty methodName = persistentCalls.GetArrayElementAtIndex(i).FindPropertyRelative("m_MethodName");
-                        SerializedProperty target = persistentCalls.GetArrayElementAtIndex(i).FindPropertyRelative("m_Target");
-                        Object receiver = EditorUtility.InstanceIDToObject(target.objectReferenceInstanceIDValue);
-                        
-                        if (receiver != null)
-                        {
-                            calls.Add(new EventCall(caller,
-                                receiver,
-                                iterator.displayName,
-                                methodName.stringValue,
-                                unityEvent));
-                        }
-                    }
-                }
-            } while (iterator.Next(false));
-
-            return calls;
+			RecursivelyExtractEvents(calls, caller, iterator, 0);
         }
 
-        private static List<EventCall> ExtractDefaultEventTriggers(Component caller)
+		private static bool RecursivelyExtractEvents(HashSet<EventCall> calls, Component caller, SerializedProperty iterator, int level) {
+			bool hasData = true;
+
+			do {
+				SerializedProperty persistentCalls = iterator.FindPropertyRelative("m_PersistentCalls.m_Calls");
+				bool isUnityEvent = persistentCalls != null;
+				if (isUnityEvent && persistentCalls.arraySize > 0) {
+					UnityEventBase unityEvent = EditorHelper.GetTargetObjectOfProperty(iterator) as UnityEventBase;
+					AddEventCalls(calls, caller, unityEvent, iterator.displayName, iterator.propertyPath);
+				}
+				hasData = iterator.Next(!isUnityEvent);
+				if (hasData) {
+					if (iterator.depth < level) return hasData;
+					else if (iterator.depth > level) hasData = RecursivelyExtractEvents(calls, caller, iterator, iterator.depth);
+				}
+			}
+			while (hasData);
+			return false;
+		}
+
+        private static void ExtractDefaultEventTriggers(HashSet<EventCall> calls, Component caller)
         {
-            List<EventCall> calls = new List<EventCall>();
             EventTrigger eventTrigger = caller as EventTrigger;
             if (eventTrigger != null)
             {
                 foreach (EventTrigger.Entry trigger in eventTrigger.triggers)
                 {
-                    for (int i = 0; i < trigger.callback.GetPersistentEventCount(); i++)
-                    {
-                        calls.Add(new EventCall(caller,
-                                  trigger.callback.GetPersistentTarget(i),
-                                 trigger.eventID.ToString(),
-                                 trigger.callback.GetPersistentMethodName(i),
-                                 trigger.callback));
-                    }
-
+					string name = trigger.eventID.ToString();
+					AddEventCalls(calls, caller, trigger.callback, name, name);
                 }
             }
-
-            return calls;
         }
 
-        public static List<GameObject> GetAllObjectsInScene()
-        {
-            GameObject[] pAllObjects = (GameObject[])Resources.FindObjectsOfTypeAll(typeof(GameObject));
+		private static void AddEventCalls(HashSet<EventCall> calls, Component caller, UnityEventBase unityEvent, string eventShortName, string eventFullName) {
+			if (unityEvent.GetPersistentEventCount() >= 2) {
+				Debug.Break();
+			}
+			for (int i = 0; i < unityEvent.GetPersistentEventCount(); i++) {
+				string methodName = unityEvent.GetPersistentMethodName(i);
+				UnityEngine.Object receiver = unityEvent.GetPersistentTarget(i);
 
-            List<GameObject> pReturn = new List<GameObject>();
-
-            foreach (GameObject pObject in pAllObjects)
-            {
-
-                if (pObject.hideFlags == HideFlags.NotEditable
-                    || pObject.hideFlags == HideFlags.HideAndDontSave)
-                {
-                    continue;
-                }
-
-                if (Application.isEditor)
-                {
-                    string sAssetPath = AssetDatabase.GetAssetPath(pObject.transform.root.gameObject);
-                    if (!string.IsNullOrEmpty(sAssetPath))
-                    {
-                        continue;
-                    }
-                }
-
-                pReturn.Add(pObject);
-            }
-
-            return pReturn;
-        }
+				if (receiver != null && methodName != null && methodName != "") {
+					calls.Add(new EventCall(caller, receiver, eventShortName, eventFullName, methodName, unityEvent));
+				}
+			}
+		}
 
 
-        private static UnityEventBase FindEvent(Component caller, SerializedProperty iterator)
-        {
-            PropertyInfo eventPropertyInfo = caller.GetType().GetProperty(iterator.propertyPath);
-            if (eventPropertyInfo == null)
-            {
-                string fieldToPropertyName = iterator.propertyPath.Replace("m_", "");
-                fieldToPropertyName = fieldToPropertyName[0].ToString().ToLower() + fieldToPropertyName.Substring(1);
 
-                eventPropertyInfo = caller.GetType().GetProperty(fieldToPropertyName);
-            }
-            if (eventPropertyInfo != null)
-            {
-                return eventPropertyInfo.GetValue(caller, null) as UnityEventBase;
-            }
 
-            FieldInfo eventFieldInfo = caller.GetType().GetField(iterator.propertyPath);
-            if (eventFieldInfo == null)
-            {
-                string fieldToFieldName = iterator.propertyPath.Replace("m_", "");
-                fieldToFieldName = fieldToFieldName[0].ToString().ToLower() + fieldToFieldName.Substring(1);
 
-                eventFieldInfo = caller.GetType().GetField(fieldToFieldName);
-            }
-            if (eventFieldInfo != null)
-            {
-                return  eventFieldInfo.GetValue(caller) as UnityEventBase;
-            }
-            return null;
-        }
-    }
+		
+
+		public static bool NeedsGraphRefresh = false;
+		
+		private static HashSet<Type> ComponentsThatCanHaveUnityEvent = new HashSet<Type>();
+		private static Dictionary<Type, bool> TmpSearchedTypes = new Dictionary<Type, bool>();
+
+		[DidReloadScripts]
+		static void AfterScriptReload() {
+			var objects = AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic)
+				.SelectMany(a => a.GetTypes())
+				.Where(t => typeof(Component).IsAssignableFrom(t));
+
+			foreach (var obj in objects) {
+				if (RecursivelySearchFields<UnityEvent>(obj)) {
+					ComponentsThatCanHaveUnityEvent.Add(obj);
+				}
+			}
+			TmpSearchedTypes.Clear();
+
+			NeedsGraphRefresh = true;
+		}
+
+		/// <summary>
+		/// Search for types that have a field or property of type <typeparamref name="T"/> or can hold an object that can.
+		/// </summary>
+		/// <typeparam name="T">Needle</typeparam>
+		/// <param name="type">Haystack</param>
+		/// <returns>Can contain some object <typeparamref name="T"/></returns>
+		static bool RecursivelySearchFields<T>(Type type) {
+			bool wanted;
+			if (TmpSearchedTypes.TryGetValue(type, out wanted)) return wanted;
+			TmpSearchedTypes.Add(type, false);
+
+			foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)) {
+				var fType = field.FieldType;
+				if (fType.IsPrimitive) continue;
+
+				if (typeof(T).IsAssignableFrom(fType)
+				|| typeof(List<T>).IsAssignableFrom(fType)
+				|| typeof(T[]).IsAssignableFrom(fType)) {
+					wanted = true;
+				}
+				else if (typeof(UnityEngine.Object).IsAssignableFrom(fType)
+				|| typeof(List<UnityEngine.Object>).IsAssignableFrom(fType)
+				|| typeof(UnityEngine.Object[]).IsAssignableFrom(fType)) {
+					continue;
+				}
+				else if (!TmpSearchedTypes.TryGetValue(fType, out wanted)) {
+					wanted = RecursivelySearchFields<T>(fType);
+				}
+				if (wanted) {
+					TmpSearchedTypes[type] = true;
+					return true;
+				}
+			}
+			return false;
+		}
+	}
 }

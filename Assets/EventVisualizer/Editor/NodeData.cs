@@ -48,8 +48,8 @@ namespace EventVisualizer.Base
         
         public static void RegisterEvent(EventCall eventCall)
         {
-            var nodeSender = CreateNode(eventCall.Sender);
-            var nodeReceiver = CreateNode(eventCall.Receiver);
+            var nodeSender = CreateNode(eventCall.sender);
+            var nodeReceiver = CreateNode(eventCall.receiver);
 
 			eventCall.nodeSender = nodeSender;
 			eventCall.nodeReceiver = nodeReceiver;
