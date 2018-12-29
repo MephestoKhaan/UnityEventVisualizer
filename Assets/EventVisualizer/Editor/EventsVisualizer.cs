@@ -71,9 +71,6 @@ namespace EventVisualizer.Base
         }
 
 		private static void AddEventCalls(HashSet<EventCall> calls, Component caller, UnityEventBase unityEvent, string eventShortName, string eventFullName) {
-			if (unityEvent.GetPersistentEventCount() >= 2) {
-				Debug.Break();
-			}
 			for (int i = 0; i < unityEvent.GetPersistentEventCount(); i++) {
 				string methodName = unityEvent.GetPersistentMethodName(i);
 				UnityEngine.Object receiver = unityEvent.GetPersistentTarget(i);
