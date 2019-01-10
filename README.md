@@ -6,7 +6,8 @@ Have you ever come across a project that abuses linking <b>UnityEvents</b> in th
 
 ![Animation](https://media.giphy.com/media/cA3VUiWT0FIlKebCRS/giphy.gif)
 
-![Screenshot](https://i.gyazo.com/414775c117a536f14c2a4103202798c7.png)
+![SceneView](https://media.giphy.com/media/AFvTp2k8L5R1pKXJZA/giphy.gif)
+
 
 <h2>How</h2>
 
@@ -20,6 +21,7 @@ Have you ever come across a project that abuses linking <b>UnityEvents</b> in th
 
 - Scene View https://www.youtube.com/watch?v=IhG0LRFLmdo.
 [![Scene View preview](http://i3.ytimg.com/vi/IhG0LRFLmdo/hqdefault.jpg)](https://www.youtube.com/watch?v=IhG0LRFLmdo)
+
 
 This is a work-in-progress. Pull requests welcome!
 
