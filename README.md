@@ -18,6 +18,9 @@ Have you ever come across a project that abuses linking <b>UnityEvents</b> in th
 - Click on any node to highlight that <b>gameobjects</b> in your hiearchy. Alternatively right-click on any element in the hierarchy and select ```UnityEventGraph/FindThis``` to highlight it in the graph.
 ![Finder](https://media.giphy.com/media/3ohhwhMwWW0URb8mfS/giphy.gif)
 
+- Scene View https://www.youtube.com/watch?v=IhG0LRFLmdo.
+[![Scene View preview](http://i3.ytimg.com/vi/IhG0LRFLmdo/hqdefault.jpg)](https://www.youtube.com/watch?v=IhG0LRFLmdo)
+
 This is a work-in-progress. Pull requests welcome!
 
 <h2>Who</h2>
@@ -25,3 +28,4 @@ This is a work-in-progress. Pull requests welcome!
 - Original idea by [SoylentGraham](https://github.com/SoylentGraham)
 - Code by [Luca Mefisto](https://github.com/MephestoKhaan) (myself)
 - Inspired by [Keijiro Takahashi](https://github.com/keijiro)
+- SceneView representation by [Andrés Leone](https://github.com/forestrf)

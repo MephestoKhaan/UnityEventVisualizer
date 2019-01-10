@@ -48,24 +48,29 @@ namespace EventVisualizer.Base
         
         public static void RegisterEvent(EventCall eventCall)
         {
-            CreateNode(eventCall.Sender);
-            CreateNode(eventCall.Receiver);
+            var nodeSender = CreateNode(eventCall.sender);
+            var nodeReceiver = CreateNode(eventCall.receiver);
 
-			nodes[eventCall.Sender.GetInstanceID()].Outputs.Add(eventCall);
-            nodes[eventCall.Receiver.GetInstanceID()].Inputs.Add(eventCall);
+			eventCall.nodeSender = nodeSender;
+			eventCall.nodeReceiver = nodeReceiver;
+
+			nodeSender.Outputs.Add(eventCall);
+			nodeReceiver.Inputs.Add(eventCall);
         }
 
 
 
-        private static void CreateNode(Object entity)
+        private static NodeData CreateNode(Object entity)
         {
 			int id = entity.GetInstanceID();
 
-			if (!nodes.ContainsKey(id))
+			NodeData nodeData;
+			if (!nodes.TryGetValue(id, out nodeData))
             {
-                nodes.Add(id, new NodeData(entity));
+                nodes.Add(id, nodeData = new NodeData(entity));
             }
-        }
+			return nodeData;
+		}
         
         public NodeData(Object entity)
         {

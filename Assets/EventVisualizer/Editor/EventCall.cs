@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Text.RegularExpressions;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -8,30 +9,42 @@ namespace EventVisualizer.Base
     [System.Serializable]
     public class EventCall
     {
-        public Object Sender { get; private set; }
-        public Object Receiver { get; private set; }
-        public string EventName { get; private set; }
-        public string Method { get; private set; }
-        public string ReceiverComponentName { get; private set; }
+        public readonly Object sender;
+        public readonly Object receiver;
+		public readonly string eventShortName;
+		public readonly string eventFullName;
+		public readonly string method;
+		public string ReceiverComponentName { get; private set; }
+		public string ReceiverComponentNameSimple { get; private set; }
+
+		public NodeData nodeSender;
+        public NodeData nodeReceiver;
+        public double lastTimeExecuted { get; private set; }
+        public int timesExecuted { get; private set; }
+		public readonly Color color;
+		public readonly UnityEventBase unityEvent;
 
         public string MethodFullPath
         {
             get
             {
-                return ReceiverComponentName + Method;
+                return ReceiverComponentName + "." + method;
             }
         }
 
         public System.Action OnTriggered;
 
-        private static Regex parenteshesPattern = new Regex(@"\((.*)\)");
+        private static Regex parenteshesPattern = new Regex(@"\(([^\(]*)\)$");
 
-        public EventCall(Object sender, Object receiver, string eventName, string methodName, UnityEventBase unityEvent)
+        public EventCall(Object sender, Object receiver, string eventShortName, string eventFullName, string methodName, UnityEventBase unityEvent)
         {
-            Sender = sender as Component ? (sender as Component).gameObject : sender;
-            Receiver = receiver as Component ? (receiver as Component).gameObject : receiver;
-            EventName = eventName;
-            Method = methodName;
+            this.sender = sender as Component ? (sender as Component).gameObject : sender;
+            this.receiver = receiver as Component ? (receiver as Component).gameObject : receiver;
+			this.eventShortName = eventShortName;
+			this.eventFullName = eventFullName;
+			method = methodName;
+			color = EdgeGUI.ColorForIndex(this.eventShortName);
+			this.unityEvent = unityEvent;
 
             UpdateReceiverComponentName(receiver);
             AttachTrigger(unityEvent);
@@ -139,6 +152,7 @@ namespace EventVisualizer.Base
         #region generic callers
         public void TriggerZeroArgs()
         {
+            OnExecuted();
             if (OnTriggered != null)
             {
                 OnTriggered.Invoke();
@@ -147,6 +161,7 @@ namespace EventVisualizer.Base
 
         public void TriggerOneArg<T0>(T0 arg0)
         {
+            OnExecuted();
             if (OnTriggered != null)
             {
                 OnTriggered.Invoke();
@@ -154,6 +169,7 @@ namespace EventVisualizer.Base
         }
         public void TriggerTwoArgs<T0,T1>(T0 arg0, T1 arg1)
         {
+            OnExecuted();
             if (OnTriggered != null)
             {
                 OnTriggered.Invoke();
@@ -161,6 +177,7 @@ namespace EventVisualizer.Base
         }
         public void TriggerThreeArgs<T0,T1,T2>(T0 arg,T1 arg1, T2 arg2)
         {
+            OnExecuted();
             if (OnTriggered != null)
             {
                 OnTriggered.Invoke();
@@ -168,28 +185,42 @@ namespace EventVisualizer.Base
         }
         public void TriggerFourArgs<T0, T1, T2, T3>(T0 arg, T1 arg1, T2 arg2, T3 arg3)
         {
+            OnExecuted();
             if (OnTriggered != null)
             {
                 OnTriggered.Invoke();
             }
         }
+
+        private void OnExecuted() {
+            timesExecuted++;
+            lastTimeExecuted = EditorApplication.timeSinceStartup;
+        }
         #endregion
 
         private void UpdateReceiverComponentName(Object component)
         {
-            if (Receiver != null)
+            if (receiver != null)
             {
                 MatchCollection matches = parenteshesPattern.Matches(component.ToString());
-                if (matches != null && matches.Count > 0)
+                if (matches != null && matches.Count == 1)
                 {
-                    ReceiverComponentName = matches[matches.Count - 1].Value;
-                    if (ReceiverComponentName.Length > 1)
-                    {
-                        ReceiverComponentName = ReceiverComponentName.Remove(0, 1);
-                    }
-                    ReceiverComponentName = ReceiverComponentName.Replace(")", ".");
-                }
+                    ReceiverComponentName = matches[0].Value;
+                    ReceiverComponentName = ReceiverComponentName.Substring(1, ReceiverComponentName.Length - 2);
+					int lastDot = ReceiverComponentName.LastIndexOf('.') + 1;
+					ReceiverComponentNameSimple = ReceiverComponentName.Substring(lastDot, ReceiverComponentName.Length - lastDot);
+				}
             }
         }
+
+
+		public override bool Equals(object obj) {
+			var ec = (EventCall) obj;
+			return null != ec && ec.unityEvent == unityEvent && receiver == ec.receiver && method == ec.method;
+		}
+
+		public override int GetHashCode() {
+			return unityEvent == null ? 0 : unityEvent.GetHashCode() ^ (receiver == null ? 0 : receiver.GetHashCode() ^ method.GetHashCode());
+		}
     }
 }
