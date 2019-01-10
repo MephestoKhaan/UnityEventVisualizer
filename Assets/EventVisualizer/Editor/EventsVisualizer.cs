@@ -95,10 +95,16 @@ namespace EventVisualizer.Base
 		[DidReloadScripts, InitializeOnLoadMethod]
 		static void RefreshTypesThatCanHoldUnityEvents() {
 			var sw = System.Diagnostics.Stopwatch.StartNew();
-
+			
+#if NET_4_6
 			var objects = AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic)
 				.SelectMany(a => a.GetTypes())
 				.Where(t => typeof(Component).IsAssignableFrom(t));
+#else
+			var objects = AppDomain.CurrentDomain.GetAssemblies()
+				.SelectMany(a => a.GetTypes())
+				.Where(t => typeof(Component).IsAssignableFrom(t));
+#endif
 
 			foreach (var obj in objects) {
 				if (RecursivelySearchFields<UnityEventBase>(obj)) {
