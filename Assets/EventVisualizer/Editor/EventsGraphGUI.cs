@@ -100,7 +100,10 @@ namespace EventVisualizer.Base
                 int[] selectedIds = new int[selection.Count];
                 for (int i = 0; i < selection.Count; i++)
                 {
-                    selectedIds[i] = int.Parse(selection[i].name);
+					if(selection[i] != null)
+					{
+						selectedIds[i] = int.Parse(selection[i].name);
+					}
                 }
                 Selection.instanceIDs = selectedIds;
             }
