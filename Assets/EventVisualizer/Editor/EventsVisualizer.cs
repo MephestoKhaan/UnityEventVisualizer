@@ -19,8 +19,14 @@ namespace EventVisualizer.Base
             HashSet<EventCall> calls = new HashSet<EventCall>();
 			
 			var sw = System.Diagnostics.Stopwatch.StartNew();
-			foreach (var type in ComponentsThatCanHaveUnityEvent) {
-				foreach (Component caller in GameObject.FindObjectsOfType(type)) {
+			foreach (var type in ComponentsThatCanHaveUnityEvent)
+			{
+				if(type.IsGenericTypeDefinition)
+				{
+					continue;
+				}
+				foreach (Component caller in GameObject.FindObjectsOfType(type))
+				{
 					ExtractDefaultEventTriggers(calls, caller);
 					ExtractEvents(calls, caller);
 				}
@@ -127,7 +133,7 @@ namespace EventVisualizer.Base
 			bool wanted;
 			if (TmpSearchedTypes.TryGetValue(type, out wanted)) return wanted;
 			TmpSearchedTypes.Add(type, false);
-
+			
 			const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 			foreach (var fType in type.GetFields(flags).Where(f => !f.FieldType.IsPrimitive).Select(f => f.FieldType).Concat(type.GetProperties(flags).Select(p => p.PropertyType))) {
 				if (typeof(T).IsAssignableFrom(fType)) {

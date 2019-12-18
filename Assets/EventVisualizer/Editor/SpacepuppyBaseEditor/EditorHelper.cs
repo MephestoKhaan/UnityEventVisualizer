@@ -19,6 +19,7 @@ namespace com.spacepuppyeditor {
 		/// <param name="prop"></param>
 		/// <returns></returns>
 		public static object GetTargetObjectOfProperty(SerializedProperty prop) {
+			
 			var path = prop.propertyPath.Replace(".Array.data[", "[");
 			object obj = prop.serializedObject.targetObject;
 			var elements = path.Split('.');
@@ -40,7 +41,8 @@ namespace com.spacepuppyeditor {
 		/// </summary>
 		/// <param name="prop"></param>
 		/// <returns></returns>
-		public static object GetTargetObjectWithProperty(SerializedProperty prop) {
+		public static object GetTargetObjectWithProperty(SerializedProperty prop)
+		{
 			var path = prop.propertyPath.Replace(".Array.data[", "[");
 			object obj = prop.serializedObject.targetObject;
 			var elements = path.Split('.');
