@@ -459,7 +459,7 @@ namespace EventVisualizer.Base
 			}
 
 			Vector2 viewScreenVector = new Vector2(viewPos.x, viewPos.y);
-			return new Vector2(viewScreenVector.x, 1 - viewScreenVector.y) * new Vector2(cam.pixelWidth, cam.pixelHeight);
+			return new Vector2(viewScreenVector.x * cam.pixelWidth, (1 - viewScreenVector.y) * cam.pixelHeight);
 		}
 	}
 }

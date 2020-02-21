@@ -7,7 +7,6 @@ using UnityEngine.Events;
 using System;
 using UnityEditor.Callbacks;
 using System.Linq;
-using com.spacepuppyeditor;
 
 namespace EventVisualizer.Base
 {
@@ -50,7 +49,7 @@ namespace EventVisualizer.Base
 				SerializedProperty persistentCalls = iterator.FindPropertyRelative("m_PersistentCalls.m_Calls");
 				bool isUnityEvent = persistentCalls != null;
 				if (isUnityEvent && persistentCalls.arraySize > 0) {
-					UnityEventBase unityEvent = EditorHelper.GetTargetObjectOfProperty(iterator) as UnityEventBase;
+					UnityEventBase unityEvent = Puppy.EditorHelper.GetTargetObjectOfProperty(iterator) as UnityEventBase;
 					AddEventCalls(calls, caller, unityEvent, iterator.displayName, iterator.propertyPath);
 				}
 				hasData = iterator.Next(!isUnityEvent);
