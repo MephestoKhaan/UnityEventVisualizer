@@ -1,9 +1,9 @@
-#UnityEventVisualizer
+#EventVisualizer
 
 ##What
 Have you ever come across a project that abuses linking UnityEvents in the inspector and now you can
 not find who is calling what?
-Unity Event Visualizer is a visual tool that allows you to see all the UnityEvents in a scene at
+Event Visualizer is a visual tool that allows you to see all the UnityEvents in a scene at
 a glance and when they are being triggered. It creates a graph in which nodes are gameobjects,
 outputs are any type of UnityEvent (custom ones supported as well!) and inputs are methods.
 
