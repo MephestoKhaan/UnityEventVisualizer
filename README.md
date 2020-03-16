@@ -13,6 +13,8 @@ Have you ever come across a project that abuses linking <b>UnityEvents</b> in th
 
 - Grab the installer from the <b>Releases</b> section and import it into your project. Works in <b>Unity 5.6+</b>
 
+or alternatively download it directly from the [Unity asset store](https://assetstore.unity.com/packages/tools/utilities/event-visualizer-163380)
+
 - Select ```Windows/Events Graph Editor``` you can open the graph.
 ![Selector](https://media.giphy.com/media/l1J9LcPkjgvxoUsBW/giphy.gif)
 
