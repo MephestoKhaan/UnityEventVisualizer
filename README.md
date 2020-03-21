@@ -1,6 +1,6 @@
 # UnityEventVisualizer
 
-Now also available at the [Unity asset store](https://assetstore.unity.com/packages/tools/utilities/event-visualizer-163380) !
+Now also available at the [Unity asset store](https://assetstore.unity.com/packages/tools/utilities/event-visualizer-163380)! (free, reviews appreciated)
 
 <h2>What</h2>
 Have you ever come across a project that abuses linking <b>UnityEvents</b> in the inspector and now you can not find who is calling what?
