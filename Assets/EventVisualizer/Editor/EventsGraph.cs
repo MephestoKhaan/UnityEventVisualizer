@@ -1,14 +1,18 @@
 ﻿using UnityEngine;
-using EventVisualizer.Base;
 using System.Collections.Generic;
 using UnityEditor.Graphs;
 using System.Linq;
+using UnityEditor;
 
 namespace EventVisualizer.Base
 {
 	[System.Serializable]
 	public class EventsGraph : Graph
 	{
+		private const int WARNING_CALLS_THRESOLD = 1000;
+		private GameObject[] selectedRoots;
+		private bool searchingHierarchy;
+
 		static public EventsGraph Create()
 		{
 			var graph = CreateInstance<EventsGraph>();
@@ -25,9 +29,11 @@ namespace EventVisualizer.Base
 
 		}
 
-		public void RebuildGraph()
+		public void RebuildGraph(GameObject[] roots, bool searchHierarchy)
 		{
-			BuildGraph();
+			this.selectedRoots = roots;
+			this.searchingHierarchy = searchHierarchy;
+			BuildGraph(selectedRoots, searchHierarchy);
 			SortGraph(nodes,false);
 		}
 
@@ -39,7 +45,7 @@ namespace EventVisualizer.Base
 			{
 				positions.Add(node.name, node.position);
 			}
-			BuildGraph();
+			BuildGraph(this.selectedRoots, this.searchingHierarchy);
 
 			foreach (NodeGUI node in nodes)
 			{
@@ -55,11 +61,33 @@ namespace EventVisualizer.Base
 			SortGraph(adriftNodes,true);
 		}
 
-		private void BuildGraph()
+		private void BuildGraph(GameObject[] roots, bool searchHierarchy)
 		{
 			NodeData.ClearAll();
 			Clear(true);
-			foreach (EventCall call in EventsFinder.FindAllEvents())
+			List<EventCall> calls = EventsFinder.FindAllEvents(roots, searchHierarchy);
+			if(calls.Count > WARNING_CALLS_THRESOLD)
+			{
+				bool goAhead = EditorUtility.DisplayDialog("Confirm massive graph",
+					"You are about to generate a graph with "+ calls.Count+" events.\n"
+					+ "Tip: You can select some gameobjects and search events in just those or their children instead.",
+					"Go ahead",
+					"Abort");
+
+				if(goAhead)
+				{
+					GenerateGraphFromCalls(calls);
+				}
+			}
+			else
+			{
+				GenerateGraphFromCalls(calls);
+			}
+		}
+
+		private void GenerateGraphFromCalls(List<EventCall> calls)
+		{
+			foreach (EventCall call in calls)
 			{
 				NodeData.RegisterEvent(call);
 			}

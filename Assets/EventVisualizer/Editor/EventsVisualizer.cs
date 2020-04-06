@@ -10,32 +10,55 @@ using System.Linq;
 
 namespace EventVisualizer.Base
 {
-
     public static class EventsFinder
     {
-        public static List<EventCall> FindAllEvents()
+        public static List<EventCall> FindAllEvents(GameObject[] roots, bool searchHierarchy = true)
         {
             HashSet<EventCall> calls = new HashSet<EventCall>();
-			
-			var sw = System.Diagnostics.Stopwatch.StartNew();
 			foreach (var type in ComponentsThatCanHaveUnityEvent)
 			{
 				if(type.IsGenericTypeDefinition)
 				{
 					continue;
 				}
-				foreach (Component caller in GameObject.FindObjectsOfType(type))
+
+				HashSet<UnityEngine.Object> selectedComponents = new HashSet<UnityEngine.Object>();
+				if(roots != null && roots.Length > 0)
 				{
-					ExtractDefaultEventTriggers(calls, caller);
-					ExtractEvents(calls, caller);
+					foreach(var root in roots)
+					{
+						if(root != null)
+						{
+							if(searchHierarchy)
+							{
+								selectedComponents.UnionWith(root.GetComponentsInChildren(type));
+							}
+							else
+							{
+								selectedComponents.Add(root.GetComponent(type));
+							}
+						}
+					}
+				}
+				else 
+				{
+					selectedComponents = new HashSet<UnityEngine.Object>(GameObject.FindObjectsOfType(type));
+				}
+
+				foreach (UnityEngine.Object caller in selectedComponents)
+				{
+					Component comp = caller as Component;
+					if(comp != null)
+					{
+						ExtractDefaultEventTriggers(calls, comp);
+						ExtractEvents(calls, comp);
+					}
 				}
 			}
-			Debug.Log("UnityEventVisualizer FindAllEvents(). Milliseconds: " + sw.Elapsed.TotalMilliseconds);
-			
 			return calls.ToList();
         }
-        
-        private static void ExtractEvents(HashSet<EventCall> calls, Component caller)
+
+		private static void ExtractEvents(HashSet<EventCall> calls, Component caller)
         {
             SerializedProperty iterator = new SerializedObject(caller).GetIterator();
             iterator.Next(true);
@@ -85,13 +108,7 @@ namespace EventVisualizer.Base
 				}
 			}
 		}
-
-
-
-
-
 		
-
 		public static bool NeedsGraphRefresh = false;
 		
 		private static HashSet<Type> ComponentsThatCanHaveUnityEvent = new HashSet<Type>();
@@ -117,8 +134,7 @@ namespace EventVisualizer.Base
 				}
 			}
 			TmpSearchedTypes.Clear();
-
-			NeedsGraphRefresh = true;
+			
 			Debug.Log("UnityEventVisualizer Updated Components that can have UnityEvents (" + ComponentsThatCanHaveUnityEvent.Count + "). Milliseconds: " + sw.Elapsed.TotalMilliseconds);
 		}
 

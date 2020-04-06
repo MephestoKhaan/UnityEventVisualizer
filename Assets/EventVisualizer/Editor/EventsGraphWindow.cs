@@ -37,7 +37,7 @@ namespace EventVisualizer.Base
 			if (initialized) return;
 			initialized = true;
 			_graph = EventsGraph.Create();
-			_graph.RebuildGraph();
+			//_graph.RebuildGraph();
 
 			_graphGUI = _graph.GetEditor();
 			_graphGUI.CenterGraph();
@@ -46,12 +46,11 @@ namespace EventVisualizer.Base
 			EditorUtility.SetDirty(_graph);
 		}
 
-		private static readonly string[] toolbarStrings = new string[] { "Update connections", "Clear" };
+		private static readonly string[] toolbarStrings = new string[] {"Rebuild on selected Hierarchy", "Rebuild JUST selected", "Update connections" };
 
 		void OnGUI()
 		{
 			Initialize();
-			RefreshIfNeeded();
 
 			var width = position.width;
 			var height = position.height;
@@ -78,8 +77,9 @@ namespace EventVisualizer.Base
 			// Status bar
 			GUILayout.BeginArea(new Rect(0, 0, width, kBarHeight+5));
 			int result = GUILayout.Toolbar(-1, toolbarStrings);
-			if (result == 0) RefreshGraphConnections();
-			else if(result == 1) RebuildGraph();
+			if(result == 0) RebuildGraphOnSelected(true);
+			else if (result == 1) RebuildGraphOnSelected(false);
+			else if(result == 2) RefreshGraphConnections();
 			GUILayout.EndArea();
 
 			const float maxWidth = 200;
@@ -161,26 +161,26 @@ namespace EventVisualizer.Base
 			}
 		}
 
-		void RebuildGraph()
+
+		public void RebuildGraphOnSelected(bool searchHierarchy)
 		{
-			if(_graph != null)
+			RebuildGraph(Selection.gameObjects, searchHierarchy);
+		}
+
+		public void RebuildGraph(GameObject[] roots, bool searchHierarchy)
+		{
+			if (_graph != null)
 			{
-				_graph.RebuildGraph();
+				_graph.RebuildGraph(Selection.gameObjects, searchHierarchy);
 			}
 		}
-		void RefreshGraphConnections()
+
+		public void RefreshGraphConnections()
 		{
 			Debug.Log("Refreshing UnityEventVisualizer Graph Connections");
 			if (_graph != null)
 			{
 				_graph.RefreshGraphConnections();
-			}
-		}
-
-		void RefreshIfNeeded() {
-			if (EventsFinder.NeedsGraphRefresh) {
-				EventsFinder.NeedsGraphRefresh = false;
-				RefreshGraphConnections();
 			}
 		}
 
@@ -196,23 +196,17 @@ namespace EventVisualizer.Base
 
 		void AddCallbacks() {
 			SceneView.onSceneGUIDelegate += OnSceneGUI;
-			Undo.undoRedoPerformed += OnHierarchyChange;
 			EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
 		}
 		void RemoveCallbacks() {
 			SceneView.onSceneGUIDelegate -= OnSceneGUI;
-			Undo.undoRedoPerformed -= OnHierarchyChange;
 			EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
-		}
-
-		void OnHierarchyChange() {
-			if (EditorApplication.isPlaying) return;
-			RefreshGraphConnections();
 		}
 
 		void OnPlayModeStateChanged(PlayModeStateChange mode) {
 			switch (mode) {
 				case PlayModeStateChange.EnteredEditMode:
+					break;
 				case PlayModeStateChange.EnteredPlayMode:
 					RefreshGraphConnections();
 					break;
