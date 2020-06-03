@@ -440,7 +440,7 @@ namespace EventVisualizer.Base
 
 			if (behindScreen) {
 				if (p2 == cam.transform.position) return Vector2.zero;
-
+				
 				var Plane = new Plane(cam.transform.forward, cam.transform.position + cam.transform.forward * cam.nearClipPlane);
 				Ray r = new Ray(p, p2 - p);
 				float enter;
@@ -451,9 +451,10 @@ namespace EventVisualizer.Base
 
 				viewPos = cam.WorldToViewportPoint(proj);
 			}
-
-			Vector2 viewScreenVector = new Vector2(viewPos.x, viewPos.y);
-			return new Vector2(viewScreenVector.x * cam.pixelWidth, (1 - viewScreenVector.y) * cam.pixelHeight);
+			float scaleFactor = 1f;
+			return new Vector2(
+				viewPos.x *  cam.scaledPixelWidth,
+				(1 - viewPos.y) * cam.scaledPixelHeight) * scaleFactor;
 		}
 	}
 }
