@@ -40,7 +40,7 @@ namespace EventVisualizer.Base
 		public void RefreshGraphConnections()
 		{
 			Dictionary<string, Rect> positions = new Dictionary<string, Rect>();
-			List<Node> adriftNodes = new List<Node>();
+			List<UnityEditor.Graphs.Node> adriftNodes = new List<UnityEditor.Graphs.Node>();
 			foreach (NodeGUI node in nodes)
 			{
 				positions.Add(node.name, node.position);
@@ -109,14 +109,14 @@ namespace EventVisualizer.Base
 		#region sorting
 
 		[SerializeField]
-		private HashSet<Node> positionedNodes = new HashSet<Node>();
+		private HashSet<UnityEditor.Graphs.Node> positionedNodes = new HashSet<UnityEditor.Graphs.Node>();
 		private const float VERTICAL_SPACING = 80f;
 		private const float HORIZONTAL_SPACING = 400f;
-		private void SortGraph(List<Node> nodes, bool skipParents)
+		private void SortGraph(List<UnityEditor.Graphs.Node> nodes, bool skipParents)
 		{
 			positionedNodes.Clear();
 
-			List<Node> sortedNodes = new List<Node>(nodes); //cannot sort the original collection so a clone is needed
+			List<UnityEditor.Graphs.Node> sortedNodes = new List<UnityEditor.Graphs.Node>(nodes); //cannot sort the original collection so a clone is needed
 			sortedNodes.Sort((x, y) =>
 			{
 				int xScore = x.outputEdges.Count() - x.inputEdges.Count();
@@ -125,7 +125,7 @@ namespace EventVisualizer.Base
 			});
 
 			Vector2 position = Vector2.zero;
-			foreach (Node node in sortedNodes)
+			foreach (UnityEditor.Graphs.Node node in sortedNodes)
 			{
 				if (!positionedNodes.Contains(node))
 				{
@@ -136,14 +136,14 @@ namespace EventVisualizer.Base
 		}
 
 
-		private float PositionNodeHierarchy(Node currentNode, Vector2 masterPosition, bool skipParents)
+		private float PositionNodeHierarchy(UnityEditor.Graphs.Node currentNode, Vector2 masterPosition, bool skipParents)
 		{
 			float height = VERTICAL_SPACING;
 			if (!skipParents)
 			{
 				foreach (var outputEdge in currentNode.outputEdges)
 				{
-					Node node = outputEdge.toSlot.node;
+					UnityEditor.Graphs.Node node = outputEdge.toSlot.node;
 					if (!positionedNodes.Contains(node))
 					{
 						positionedNodes.Add(node);

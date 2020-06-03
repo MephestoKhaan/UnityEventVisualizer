@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace EventVisualizer.Base
 {
-    public class NodeGUI : Node
+    public class NodeGUI : UnityEditor.Graphs.Node
     {
         #region Public class methods
 

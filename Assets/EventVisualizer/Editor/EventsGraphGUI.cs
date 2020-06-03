@@ -70,7 +70,7 @@ namespace EventVisualizer.Base
         
         
 
-        public override void NodeGUI(Node node)
+        public override void NodeGUI(UnityEditor.Graphs.Node node)
         {
             SelectNode(node);
 
@@ -113,7 +113,7 @@ namespace EventVisualizer.Base
         {
             if (SelectionOverride != 0)
             {
-                Node selectedNode = graph[SelectionOverride.ToString()];
+                UnityEditor.Graphs.Node selectedNode = graph[SelectionOverride.ToString()];
                 if (selectedNode != null)
                 {
                     selection.Clear();
