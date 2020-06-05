@@ -1,6 +1,6 @@
 {
     "name": "com.mefistofiles.unity-event-visualizer",
-    "version": "1.0.1",
+    "version": "1.4.2",
     "displayName": "Unity Event Visualizer",
     "description": "A graph editor for viewing all UnityEvents at a glance ",
     "unity": "2017.4",
