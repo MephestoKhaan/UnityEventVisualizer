@@ -1,5 +1,7 @@
 # UnityEventVisualizer
 
+[![openupm](https://img.shields.io/npm/v/com.mefistofiles.unity-event-visualizer?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.mefistofiles.unity-event-visualizer/)
+
 Now also available at the [Unity asset store](https://assetstore.unity.com/packages/tools/utilities/event-visualizer-163380)! (free, reviews appreciated)
 
 <h2>What</h2>
@@ -10,10 +12,34 @@ Have you ever come across a project that abuses linking <b>UnityEvents</b> in th
 
 ![SceneView](https://media.giphy.com/media/AFvTp2k8L5R1pKXJZA/giphy.gif)
 
+<h2>Install</h2>
+
+**Via OpenUPM**
+
+The package is available on the [openupm registry](https://openupm.com). It's recommended to install it via [openupm-cli](https://github.com/openupm/openupm-cli).
+
+```
+openupm add com.mefistofiles.unity-event-visualizer
+```
+
+**Via Git URL**
+
+Open Packages/manifest.json with your favorite text editor. Add the following line to the dependencies block.
+
+```
+"com.mefistofiles.unity-event-visualizer": "https://github.com/MephestoKhaan/UnityEventVisualizer.git"
+```
+
+**Via .unitypackage**
+
+Grab the installer from the <b>Releases</b> section and import it into your project.
+
+**Via Unity asset store**
+
+Download it directly from the [Unity asset store](https://assetstore.unity.com/packages/tools/utilities/event-visualizer-163380).
+
 
 <h2>How</h2>
-
-- Grab the installer from the <b>Releases</b> section and import it into your project. Or alternatively download it directly from the [Unity asset store](https://assetstore.unity.com/packages/tools/utilities/event-visualizer-163380)
 
 - Select ```Windows/Events Graph Editor``` you can open the graph.
 ![Selector](https://media.giphy.com/media/l1J9LcPkjgvxoUsBW/giphy.gif)
