@@ -1,6 +1,6 @@
 {
 	"name": "com.mefistofiles.unity-event-visualizer",
-	"version": "1.4.2",
+	"version": "1.4.4",
 	"displayName": "Unity Event Visualizer",
 	"description": "A graph editor for viewing all UnityEvents at a glance",
 	"unity": "2017.4",
@@ -37,7 +37,5 @@
 			"description": "Sample covering different types of custom and Unity Events",
 			"path": "Samples~/GeneralEvents"
 		}
-	],
-
-	"type": "tool"
+	]
 }
