@@ -1,34 +1,43 @@
 {
-    "name": "com.mefistofiles.unity-event-visualizer",
-    "version": "1.4.2",
-    "displayName": "Unity Event Visualizer",
-    "description": "A graph editor for viewing all UnityEvents at a glance ",
-    "unity": "2017.4",
-    "unityRelease": "37f1",
-    "keywords": [
-      "unity",
-      "event",
-      "visualizer"
-    ],
-    "homepage": "https://github.com/MephestoKhaan/UnityEventVisualizer/",
-    "bugs": {
-      "url": "https://github.com/MephestoKhaan/UnityEventVisualizer/issues"
-    },
-    "repository": {
-      "type": "git",
-      "url": "ssh://git@github.com:MephestoKhaan/UnityEventVisualizer.git"
-    },
-    "license": "MIT",
-    "author": {
-      "name": "Luca Mefisto",
-      "email": "luca.m.conesa@gmail.com",
-      "url": "http://mefistofiles.com/"
-    },
-    "files": [
-      "*.md",
-      "*.meta",
-      "*.asmdef",
-      "Demo",
-      "Editor"
-    ]
-  }
+	"name": "com.mefistofiles.unity-event-visualizer",
+	"version": "1.4.2",
+	"displayName": "Unity Event Visualizer",
+	"description": "A graph editor for viewing all UnityEvents at a glance",
+	"unity": "2017.4",
+	"unityRelease": "37f1",
+	"keywords": [
+		"unity",
+		"event",
+		"visualizer"
+	],
+	"homepage": "https://github.com/MephestoKhaan/UnityEventVisualizer/",
+	"bugs": {
+		"url": "https://github.com/MephestoKhaan/UnityEventVisualizer/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "ssh://git@github.com:MephestoKhaan/UnityEventVisualizer.git"
+	},
+	"license": "MIT",
+	"author": {
+		"name": "Luca Mefisto",
+		"email": "luca.m.conesa@gmail.com",
+		"url": "http://mefistofiles.com/"
+	},
+	"files": [
+		"*.md",
+		"*.meta",
+		"*.asmdef",
+		"Demo",
+		"Editor"
+	],
+	"samples": [
+		{
+			"displayName": "General Events",
+			"description": "Sample covering different types of custom and Unity Events",
+			"path": "Samples~/GeneralEvents"
+		}
+	],
+
+	"type": "tool"
+}
