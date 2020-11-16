@@ -16,7 +16,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "ssh://git@github.com:MephestoKhaan/UnityEventVisualizer.git"
+		"url": "ssh://git@github.com:MephestoKhaan/UnityEventVisualizer.git" 
 	},
 	"license": "MIT",
 	"author": {
@@ -28,7 +28,7 @@
 		"*.md",
 		"*.meta",
 		"*.asmdef",
-		"Demo",
+		"Samples~",
 		"Editor"
 	],
 	"samples": [
